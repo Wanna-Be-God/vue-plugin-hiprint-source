@@ -21,6 +21,9 @@
 ![image](https://badgen.net/npm/dm/vue-plugin-hiprint)
 ![image](https://badgen.net/npm/dy/vue-plugin-hiprint)
 
+## README说明
+因为只是对原vue-plugin-hiprint的核心打印部分进行代码重构，所以使用和demo都可以参考原[]()
+
 ## 关于此插件
 
 vue-plugin-hiprint (基于 [hiprint 2.5.4](http://hiprint.io/)) 当时只是为了方便 <span style="color: red">我（并非hiprint原作者）</span> 在vue项目中引入使用，所以以此命名。

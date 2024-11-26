@@ -1,17 +1,17 @@
 {
-  "name": "vue-plugin-hiprint",
+  "name": "vue-plugin-hiprint-source",
   "description": "hiprint for Vue2.x / Vue3.x 支持拖拽(分页(不分页)、表头表脚、样式设置、复制粘贴、缩放、撤销重做)生成打印模板、导出json模板数据、静默打印/获取MAC地址(借助客户端)",
   "version": "0.0.58-fix",
-  "author": "CcSimple",
+  "author": "Wanna-Be-God",
   "license": "MIT",
   "main": "dist/vue-plugin-hiprint.js",
   "private": false,
   "repository": {
     "type": "git",
-    "url": "https://github.com/CcSimple/vue-plugin-hiprint.git"
+    "url": "https://github.com/Wanna-Be-God/vue-plugin-hiprint-source.git"
   },
   "bugs": {
-    "url": "https://github.com/CcSimple/vue-plugin-hiprint/issues"
+    "url": "https://github.com/Wanna-Be-God/vue-plugin-hiprint-source/issues"
   },
   "keywords": [
     "vue",

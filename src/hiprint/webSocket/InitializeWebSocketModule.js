@@ -179,48 +179,42 @@ export default function (module, exports) {
 
     setupSocketListeners() {
       const self = this;
-      this.socket.on("success", function (data) {
-        hinnn.event.trigger("printSuccess_" + data.templateId, data);
-      });
-      this.socket.on("error", function (data) {
-        hinnn.event.trigger("printError_" + data.templateId, data);
-      });
-      this.socket.on("clients", function (clients) {
-        self.clients = clients;
-        hinnn.event.trigger("clients", clients);
-      });
-      this.socket.on("clientInfo", function (clientInfo) {
-        self.clientInfo = clientInfo;
-        hinnn.event.trigger("clientInfo", clientInfo);
-      });
-      this.socket.on("printerList", function (data) {
-        self.printerList = data;
-        hinnn.event.trigger("printerList", data);
-      });
-      this.socket.on("paperSizeInfo", function (data) {
-        self.paperSize = Array.isArray(data) ? data : [data];
-        hinnn.event.trigger("paperSizeInfo", self.paperSize);
-      });
-      this.socket.on("address", function (type, addr, data) {
-        hinnn.event.trigger("address_" + type, {
-          addr: addr,
-          data: data,
-        });
-      });
-      this.socket.on("ippPrinterConnected", function (printer) {
-        hinnn.event.trigger("ippPrinterConnected", printer);
-      });
-      this.socket.on("ippPrinterCallback", function (error, response) {
-        hinnn.event.trigger("ippPrinterCallback", {
-          error: error,
-          response: response,
-        });
-      });
-      this.socket.on("ippRequestCallback", function (error, response) {
-        hinnn.event.trigger("ippRequestCallback", {
-          error: error,
-          response: response,
-        });
+      const events = {
+        success: (data) =>
+          hinnn.event.trigger("printSuccess_" + data.templateId, data),
+        error: (data) =>
+          hinnn.event.trigger("printError_" + data.templateId, data),
+        clients: (clients) => {
+          self.clients = clients;
+          hinnn.event.trigger("clients", clients);
+        },
+        clientInfo: (clientInfo) => {
+          self.clientInfo = clientInfo;
+          hinnn.event.trigger("clientInfo", clientInfo);
+        },
+        printerList: (data) => {
+          self.printerList = data;
+          hinnn.event.trigger("printerList", data);
+        },
+        paperSizeInfo: (data) => {
+          self.paperSize = Array.isArray(data) ? data : [data];
+          hinnn.event.trigger("paperSizeInfo", self.paperSize);
+        },
+        address: (type, addr, data) => {
+          hinnn.event.trigger("address_" + type, { addr, data });
+        },
+        ippPrinterConnected: (printer) =>
+          hinnn.event.trigger("ippPrinterConnected", printer),
+        ippPrinterCallback: (error, response) => {
+          hinnn.event.trigger("ippPrinterCallback", { error, response });
+        },
+        ippRequestCallback: (error, response) => {
+          hinnn.event.trigger("ippRequestCallback", { error, response });
+        },
+      };
+
+      Object.keys(events).forEach((event) => {
+        this.socket.on(event, events[event]);
       });
     }
 
