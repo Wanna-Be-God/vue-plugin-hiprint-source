@@ -16,51 +16,58 @@ export default function CreateBasePrintElement(module, exports, require) {
     _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__ = require(2);
 
   class BasePrintElement {
-    constructor(t) {
-      this.printElementType = t;
+    constructor(printElementType) {
+      this.printElementType = printElementType;
       this.id = _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance.guid();
     }
 
-    getConfigOptionsByName(t) {
-      return _HiPrintConfig__WEBPACK_IMPORTED_MODULE_1__.a.instance[t];
+    getConfigOptionsByName(name) {
+      return _HiPrintConfig__WEBPACK_IMPORTED_MODULE_1__.a.instance[name];
     }
 
-    getProxyTarget(t) {
-      if (t) this.SetProxyTargetOption(t);
-      const e = this.getData();
-      const n = this.createTarget(this.getTitle(), e);
-      this.updateTargetSize(n);
-      this.css(n, e);
-      return n;
+    getProxyTarget(options) {
+      if (options) this.setProxyTargetOption(options);
+      const data = this.getData();
+      const target = this.createTarget(this.getTitle(), data);
+      this.updateTargetSize(target);
+      this.css(target, data);
+      return target;
     }
 
-    SetProxyTargetOption(t) {
+    setProxyTargetOption(options) {
       this.options.getPrintElementOptionEntity();
-      $.extend(this.options, t);
+      $.extend(this.options, options);
       this.copyFromType();
     }
 
-    showInPage(t, e) {
-      const n = this.options.showInPage;
-      const i = this.options.unShowInPage;
+    showInPage(pageIndex, totalPages) {
+      const showInPage = this.options.showInPage;
+      const unShowInPage = this.options.unShowInPage;
 
-      if (n) {
-        if (n === "first") return t === 0;
-        if (t === e - 1 && i === "last") return false;
-        if (n === "odd") return (t !== 0 || i !== "first") && t % 2 === 0;
-        if (n === "even") return t % 2 === 1;
-        if (n === "last") return t === e - 1;
+      if (showInPage) {
+        if (showInPage === "first") return pageIndex === 0;
+        if (pageIndex === totalPages - 1 && unShowInPage === "last")
+          return false;
+        if (showInPage === "odd")
+          return (
+            (pageIndex !== 0 || unShowInPage !== "first") && pageIndex % 2 === 0
+          );
+        if (showInPage === "even") return pageIndex % 2 === 1;
+        if (showInPage === "last") return pageIndex === totalPages - 1;
       }
 
-      return (t !== 0 || i !== "first") && (t !== e - 1 || i !== "last");
+      return (
+        (pageIndex !== 0 || unShowInPage !== "first") &&
+        (pageIndex !== totalPages - 1 || unShowInPage !== "last")
+      );
     }
 
-    setTemplateId(t) {
-      this.templateId = t;
+    setTemplateId(templateId) {
+      this.templateId = templateId;
     }
 
-    setPanel(t) {
-      this.panel = t;
+    setPanel(panel) {
+      this.panel = panel;
     }
 
     getField() {
@@ -71,7 +78,7 @@ export default function CreateBasePrintElement(module, exports, require) {
       return this.printElementType.title;
     }
 
-    updateSizeAndPositionOptions(t, e, n, i) {
+    updateSizeAndPositionOptions(left, top, width, height) {
       const template =
         _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance.getPrintTemplateById(
           this.templateId
@@ -80,139 +87,141 @@ export default function CreateBasePrintElement(module, exports, require) {
         const panelWidthPt = hinnn.mm.toPt(this.panel.width);
         const panelHeightPt = hinnn.mm.toPt(this.panel.height);
         if (
-          t < 0 ||
-          e < 0 ||
-          t + this.options.width > panelWidthPt ||
-          e + this.options.height > panelHeightPt
+          left < 0 ||
+          top < 0 ||
+          left + this.options.width > panelWidthPt ||
+          top + this.options.height > panelHeightPt
         ) {
           return;
         }
       }
-      this.options.setLeft(t);
-      this.options.setTop(e);
+      this.options.setLeft(left);
+      this.options.setTop(top);
       this.options.copyDesignTopFromTop();
-      this.options.setWidth(n);
-      this.options.setHeight(i);
+      this.options.setWidth(width);
+      this.options.setHeight(height);
     }
 
-    initSizeByHtml(t) {
-      if (t && t.length) {
+    initSizeByHtml(htmlElement) {
+      if (htmlElement && htmlElement.length) {
         this.createTempContainer();
-        const e = t.clone();
-        this.getTempContainer().append(e);
+        const clonedElement = htmlElement.clone();
+        this.getTempContainer().append(clonedElement);
         this.options.initSizeByHtml(
-          parseInt(hinnn.px.toPt(e.width()).toString()),
-          parseInt(hinnn.px.toPt(e.height()).toString())
+          parseInt(hinnn.px.toPt(clonedElement.width()).toString()),
+          parseInt(hinnn.px.toPt(clonedElement.height()).toString())
         );
         this.removeTempContainer();
       }
     }
 
-    updateTargetSize(t) {
-      t.css("width", this.options.displayWidth());
-      t.css("height", this.options.displayHeight());
+    updateTargetSize(target) {
+      target.css("width", this.options.displayWidth());
+      target.css("height", this.options.displayHeight());
     }
 
-    updateTargetWidth(t) {
-      t.css("width", this.options.displayWidth());
+    updateTargetWidth(target) {
+      target.css("width", this.options.displayWidth());
     }
 
-    getDesignTarget(t) {
-      const e = this;
+    getDesignTarget(designPaper) {
+      const self = this;
       let lastTimeStamp = 0;
-      this.designTarget = this.getHtml(t)[0].target;
-      this.designPaper = t;
+      this.designTarget = this.getHtml(designPaper)[0].target;
+      this.designPaper = designPaper;
       this.designTarget.click(function (ev) {
         if (ev.timeStamp - lastTimeStamp > 500) {
-          hinnn.event.trigger(e.getPrintElementSelectEventKey(), {
-            printElement: e,
+          hinnn.event.trigger(self.getPrintElementSelectEventKey(), {
+            printElement: self,
           });
         }
         lastTimeStamp = ev.timeStamp;
       });
       this.designTarget.dblclick(function (ev) {
-        const c = e.designTarget.find(".hiprint-printElement-content");
-        if (c) {
-          const p = e.designTarget.find(".resize-panel");
+        const content = self.designTarget.find(".hiprint-printElement-content");
+        if (content) {
+          const resizePanel = self.designTarget.find(".resize-panel");
           if (
-            e.printElementType.type === "text" &&
-            !(e.options.textType && e.options.textType !== "text")
+            self.printElementType.type === "text" &&
+            !(self.options.textType && self.options.textType !== "text")
           ) {
-            e._editing = true;
-            e.designTarget.hidraggable("update", { draggable: false });
-            c.css("cursor", "text").addClass("editing");
-            e.designTarget.addClass("editing");
-            c.click(function (ev) {
-              if (e._editing) {
+            self._editing = true;
+            self.designTarget.hidraggable("update", { draggable: false });
+            content.css("cursor", "text").addClass("editing");
+            self.designTarget.addClass("editing");
+            content.click(function (ev) {
+              if (self._editing) {
                 ev.stopPropagation();
               }
             });
-            c.attr("contenteditable", true);
-            if (p) p.css("display", "none");
-            e.selectEnd(c);
+            content.attr("contenteditable", true);
+            if (resizePanel) resizePanel.css("display", "none");
+            self.selectEnd(content);
           }
         }
       });
       return this.designTarget;
     }
 
-    selectEnd(el) {
-      el.focus();
+    selectEnd(element) {
+      element.focus();
       if (
         typeof window.getSelection !== "undefined" &&
         typeof document.createRange !== "undefined"
       ) {
-        const r = document.createRange();
-        r.selectNodeContents(el[0]);
-        r.collapse(false);
-        const sel = window.getSelection();
-        sel.removeAllRanges();
-        sel.addRange(r);
+        const range = document.createRange();
+        range.selectNodeContents(element[0]);
+        range.collapse(false);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
       } else if (typeof document.body.createTextRange !== "undefined") {
-        const r = document.body.createTextRange();
-        r.moveToElementText(el[0]);
-        r.collapse(false);
-        r.select();
+        const range = document.body.createTextRange();
+        range.moveToElementText(element[0]);
+        range.collapse(false);
+        range.select();
       }
     }
 
     updateByContent(clear) {
-      const e = this;
-      const c = e.designTarget.find(".hiprint-printElement-content");
-      if (e._editing) {
-        if (c) {
-          c.css("cursor", "")
+      const self = this;
+      const content = self.designTarget.find(".hiprint-printElement-content");
+      if (self._editing) {
+        if (content) {
+          content
+            .css("cursor", "")
             .removeClass("editing")
             .removeAttr("contenteditable");
         }
-        e.designTarget.removeClass("editing");
-        const t = c.text();
-        const title = e.options.title;
-        if (t.startsWith(title) && e.options.field) {
-          if (t.length > title.length) {
-            e.options.testData = t.split("：")[1];
+        self.designTarget.removeClass("editing");
+        const text = content.text();
+        const title = self.options.title;
+        if (text.startsWith(title) && self.options.field) {
+          if (text.length > title.length) {
+            self.options.testData = text.split("：")[1];
           } else {
-            e.options.title = t;
-            e.options.testData = "";
+            self.options.title = text;
+            self.options.testData = "";
           }
         } else {
-          e.options.title = t;
+          self.options.title = text;
         }
-        e.options.title = e.options.title.split("：")[0];
+        self.options.title = self.options.title.split("：")[0];
         if (!clear) {
-          hinnn.event.trigger(e.getPrintElementSelectEventKey(), {
-            printElement: e,
+          hinnn.event.trigger(self.getPrintElementSelectEventKey(), {
+            printElement: self,
           });
         }
-        e.updateDesignViewFromOptions();
+        self.updateDesignViewFromOptions();
         hinnn.event.trigger(
-          "hiprintTemplateDataChanged_" + e.templateId,
+          "hiprintTemplateDataChanged_" + self.templateId,
           "编辑修改"
         );
-        e._editing = false;
+        self._editing = false;
         const draggable =
-          e.options.draggable === undefined || e.options.draggable === true;
-        e.designTarget.hidraggable("update", { draggable: draggable });
+          self.options.draggable === undefined ||
+          self.options.draggable === true;
+        self.designTarget.hidraggable("update", { draggable: draggable });
       }
     }
 
@@ -220,93 +229,94 @@ export default function CreateBasePrintElement(module, exports, require) {
       return "PrintElementSelectEventKey_" + this.templateId;
     }
 
-    design(t, e) {
-      const n = this;
+    design(designPaper, event) {
+      const self = this;
       this.designTarget.hidraggable({
-        draggable: n.options.draggable,
-        axis: n.options.axis ? n.options.axis : void 0,
-        designTarget: n,
-        onDrag: function onDrag(t, i, o) {
-          const els = n.panel.printElements.filter(function (t) {
+        draggable: self.options.draggable,
+        axis: self.options.axis ? self.options.axis : void 0,
+        designTarget: self,
+        onDrag: function onDrag(left, top, offset) {
+          const elements = self.panel.printElements.filter(function (element) {
             return (
-              t.designTarget.children().last().css("display") === "block" &&
-              t.designTarget.children().last().hasClass("selected") &&
-              !t.printElementType.type.includes("table")
+              element.designTarget.children().last().css("display") ===
+                "block" &&
+              element.designTarget.children().last().hasClass("selected") &&
+              !element.printElementType.type.includes("table")
             );
           });
-          const isMultiple = els.length > 1;
-          const notSelected = !n.designTarget
+          const isMultiple = elements.length > 1;
+          const notSelected = !self.designTarget
             .children()
             .last()
             .hasClass("selected");
           if (isMultiple) {
-            const left = i - n.options.left;
-            const top = o - n.options.top;
-            els.forEach(function (t) {
-              t.updateSizeAndPositionOptions(
-                left + t.options.getLeft(),
-                top + t.options.getTop()
+            const deltaX = left - self.options.left;
+            const deltaY = offset - self.options.top;
+            elements.forEach(function (element) {
+              element.updateSizeAndPositionOptions(
+                deltaX + element.options.getLeft(),
+                deltaY + element.options.getTop()
               );
-              t.designTarget.css("left", t.options.displayLeft());
-              t.designTarget.css("top", t.options.displayTop());
-              t.createLineOfPosition(e);
+              element.designTarget.css("left", element.options.displayLeft());
+              element.designTarget.css("top", element.options.displayTop());
+              element.createLineOfPosition(event);
             });
             if (notSelected) {
-              n.updateSizeAndPositionOptions(i, o);
-              n.createLineOfPosition(e);
+              self.updateSizeAndPositionOptions(left, offset);
+              self.createLineOfPosition(event);
             }
           } else {
-            n.updateSizeAndPositionOptions(i, o);
-            n.createLineOfPosition(e);
+            self.updateSizeAndPositionOptions(left, offset);
+            self.createLineOfPosition(event);
           }
           _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance.changed = true;
         },
         moveUnit: "pt",
         minMove:
           _HiPrintConfig__WEBPACK_IMPORTED_MODULE_1__.a.instance.movingDistance,
-        onBeforeDrag: function onBeforeDrag(t) {
+        onBeforeDrag: function onBeforeDrag() {
           _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance.draging = true;
-          n.designTarget.focus();
-          n.createLineOfPosition(e);
+          self.designTarget.focus();
+          self.createLineOfPosition(event);
         },
         onBeforeSelectAllDrag: function onBeforeSelectAllDrag() {
           _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance.draging = true;
-          n.designTarget.focus();
+          self.designTarget.focus();
         },
         getScale: function getScale() {
-          return n.designPaper.scale || 1;
+          return self.designPaper.scale || 1;
         },
-        onStopDrag: function onStopDrag(t) {
+        onStopDrag: function onStopDrag() {
           if (_HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance.changed) {
             hinnn.event.trigger(
-              "hiprintTemplateDataChanged_" + n.templateId,
+              "hiprintTemplateDataChanged_" + self.templateId,
               "移动"
             );
           }
           _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance.draging = false;
           _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance.changed = false;
-          const els = n.panel.printElements.filter(function (t) {
+          const elements = self.panel.printElements.filter(function (element) {
             return (
-              t.designTarget.children().last().css("display") === "block" &&
-              !t.printElementType.type.includes("table")
+              element.designTarget.children().last().css("display") ===
+                "block" && !element.printElementType.type.includes("table")
             );
           });
-          if (els.length > 1) {
-            els.forEach(function (t) {
-              t.removeLineOfPosition();
+          if (elements.length > 1) {
+            elements.forEach(function (element) {
+              element.removeLineOfPosition();
             });
           } else {
-            n.removeLineOfPosition();
+            self.removeLineOfPosition();
           }
         },
       });
       this.setResizePanel();
-      this.bingCopyEvent(this.designTarget);
-      this.bingKeyboardMoveEvent(this.designTarget, e);
+      this.bindCopyEvent(this.designTarget);
+      this.bindKeyboardMoveEvent(this.designTarget, event);
     }
 
-    getPrintElementEntity(t) {
-      return t
+    getPrintElementEntity(isNew) {
+      return isNew
         ? new _entity_PrintElementEntity__WEBPACK_IMPORTED_MODULE_0__.a(
             void 0,
             this.options.getPrintElementOptionEntity(),
@@ -319,79 +329,91 @@ export default function CreateBasePrintElement(module, exports, require) {
     }
 
     submitOption() {
-      let els = this.panel.printElements.filter(function (t) {
+      let elements = this.panel.printElements.filter(function (element) {
         return (
-          t.designTarget.children().last().css("display") === "block" &&
-          t.designTarget.children().last().hasClass("selected") &&
-          !t.printElementType.type.includes("table")
+          element.designTarget.children().last().css("display") === "block" &&
+          element.designTarget.children().last().hasClass("selected") &&
+          !element.printElementType.type.includes("table")
         );
       });
-      els = els.filter(
+      elements = elements.filter(
         (ele) => ele.printElementType.type === this.printElementType.type
       );
-      const t = this;
-      const o = this.getConfigOptions();
-      if (o && o.tabs && o.tabs.length) {
+      const self = this;
+      const configOptions = this.getConfigOptions();
+      if (configOptions && configOptions.tabs && configOptions.tabs.length) {
         this.getPrintElementOptionTabs().forEach(function (tab) {
-          if (tab.name === "样式" && els.length) {
-            tab.list.forEach(function (e) {
-              els.forEach((ele) => {
-                const n = e.getValue();
-                const r = e.name === "textType" && ele.options[e.name] !== n;
-                const a = e.name === "axis" && ele.options[e.name] !== n;
-                if (n && typeof n === "object") {
-                  Object.keys(n).forEach(function (e) {
-                    ele.options[e] = n[e];
+          if (tab.name === "样式" && elements.length) {
+            tab.list.forEach(function (optionItem) {
+              elements.forEach((ele) => {
+                const value = optionItem.getValue();
+                const isTextTypeChanged =
+                  optionItem.name === "textType" &&
+                  ele.options[optionItem.name] !== value;
+                const isAxisChanged =
+                  optionItem.name === "axis" &&
+                  ele.options[optionItem.name] !== value;
+                if (value && typeof value === "object") {
+                  Object.keys(value).forEach(function (key) {
+                    ele.options[key] = value[key];
                   });
                 } else {
-                  ele.options[e.name] = n;
+                  ele.options[optionItem.name] = value;
                 }
-                if (r) {
+                if (isTextTypeChanged) {
                   ele.setResizePanel();
                 }
-                if (a) {
-                  ele.designTarget.hidraggable("update", { axis: n });
+                if (isAxisChanged) {
+                  ele.designTarget.hidraggable("update", { axis: value });
                 }
               });
             });
           } else {
-            tab.list.forEach(function (e) {
-              const n = e.getValue();
-              const r = e.name === "textType" && t.options[e.name] !== n;
-              const a = e.name === "axis" && t.options[e.name] !== n;
-              if (n && typeof n === "object") {
-                Object.keys(n).forEach(function (e) {
-                  t.options[e] = n[e];
+            tab.list.forEach(function (optionItem) {
+              const value = optionItem.getValue();
+              const isTextTypeChanged =
+                optionItem.name === "textType" &&
+                self.options[optionItem.name] !== value;
+              const isAxisChanged =
+                optionItem.name === "axis" &&
+                self.options[optionItem.name] !== value;
+              if (value && typeof value === "object") {
+                Object.keys(value).forEach(function (key) {
+                  self.options[key] = value[key];
                 });
               } else {
-                t.options[e.name] = n;
+                self.options[optionItem.name] = value;
               }
-              if (r) {
-                t.setResizePanel();
+              if (isTextTypeChanged) {
+                self.setResizePanel();
               }
-              if (a) {
-                t.designTarget.hidraggable("update", { axis: n });
+              if (isAxisChanged) {
+                self.designTarget.hidraggable("update", { axis: value });
               }
             });
           }
         });
       } else {
-        this.getPrintElementOptionItems().forEach(function (e) {
-          const n = e.getValue();
-          const r = e.name === "textType" && t.options[e.name] !== n;
-          const a = e.name === "axis" && t.options[e.name] !== n;
-          if (n && typeof n === "object") {
-            Object.keys(n).forEach(function (e) {
-              t.options[e] = n[e];
+        this.getPrintElementOptionItems().forEach(function (optionItem) {
+          const value = optionItem.getValue();
+          const isTextTypeChanged =
+            optionItem.name === "textType" &&
+            self.options[optionItem.name] !== value;
+          const isAxisChanged =
+            optionItem.name === "axis" &&
+            self.options[optionItem.name] !== value;
+          if (value && typeof value === "object") {
+            Object.keys(value).forEach(function (key) {
+              self.options[key] = value[key];
             });
           } else {
-            t.options[e.name] = n;
+            self.options[optionItem.name] = value;
           }
-          if (r) {
-            t.setResizePanel();
+          if (isTextTypeChanged) {
+            self.setResizePanel();
           }
-          if (a) {
-            t.designTarget.hidraggable("update", { axis: n });
+          if (isAxisChanged) {
+            self.designTarget.hidraggable("update", { axis: value });
           }
         });
       }
@@ -402,25 +424,25 @@ export default function CreateBasePrintElement(module, exports, require) {
       );
     }
 
-    updateOption(o, v, b) {
+    updateOption(optionName, value, triggerEvent) {
       try {
-        const e = this.getConfigOptions();
+        const configOptions = this.getConfigOptions();
         let optionKeys = [];
-        if (e && e.tabs && e.tabs.length) {
-          e.tabs.forEach(function (n) {
-            n.options.forEach(function (e) {
-              optionKeys.push(e.name);
+        if (configOptions && configOptions.tabs && configOptions.tabs.length) {
+          configOptions.tabs.forEach(function (tab) {
+            tab.options.forEach(function (option) {
+              optionKeys.push(option.name);
             });
           });
         } else {
-          optionKeys = e.supportOptions.map(function (e) {
-            return e.name;
+          optionKeys = configOptions.supportOptions.map(function (option) {
+            return option.name;
           });
         }
-        if (optionKeys && optionKeys.includes(o)) {
-          this.options[o] = v;
+        if (optionKeys && optionKeys.includes(optionName)) {
+          this.options[optionName] = value;
           this.updateDesignViewFromOptions();
-          if (!b) {
+          if (!triggerEvent) {
             hinnn.event.trigger(
               "hiprintTemplateDataChanged_" + this.templateId,
               "参数修改"
@@ -429,14 +451,14 @@ export default function CreateBasePrintElement(module, exports, require) {
         }
         this._printElementOptionTabs.forEach((tab) => {
           tab.list.forEach((item) => {
-            if (item.name === o) {
-              item.target.find("select")?.val(v.toString());
-              item.target.find("input")?.val(v.toString());
+            if (item.name === optionName) {
+              item.target.find("select")?.val(value.toString());
+              item.target.find("input")?.val(value.toString());
             }
           });
         });
-      } catch (e) {
-        console.log("updateOption error", e);
+      } catch (error) {
+        console.log("updateOption error", error);
       }
     }
 
@@ -447,286 +469,318 @@ export default function CreateBasePrintElement(module, exports, require) {
     }
 
     setResizePanel() {
-      const n = this;
-      const e = this.designPaper;
+      const self = this;
+      const designPaper = this.designPaper;
       this.designTarget.hireizeable({
-        showPoints: n.getReizeableShowPoints(),
-        draggable: n.options.draggable,
+        showPoints: self.getReizeableShowPoints(),
+        draggable: self.options.draggable,
         showSizeBox:
           _HiPrintConfig__WEBPACK_IMPORTED_MODULE_1__.a.instance.showSizeBox,
         getScale: function getScale() {
-          return n.designPaper.scale || 1;
+          return self.designPaper.scale || 1;
         },
         onBeforeResize: function onBeforeResize() {
           _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance.draging = true;
         },
-        onResize: function onResize(t, i, o, r, a, rt) {
-          if (rt !== undefined) {
-            n.onRotate(t, rt);
+        onResize: function onResize(
+          width,
+          height,
+          left,
+          top,
+          rotate,
+          isRotating
+        ) {
+          if (isRotating !== undefined) {
+            self.onRotate(width, isRotating);
           } else {
-            n.onResize(t, i, o, r, a);
+            self.onResize(width, height, left, top);
           }
-          n.createLineOfPosition(e);
+          self.createLineOfPosition(designPaper);
         },
-        onStopResize: function onStopResize(r) {
+        onStopResize: function onStopResize(isRotating) {
           hinnn.event.trigger(
-            "hiprintTemplateDataChanged_" + n.templateId,
-            r ? "旋转" : "大小"
+            "hiprintTemplateDataChanged_" + self.templateId,
+            isRotating ? "旋转" : "大小"
           );
           _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance.draging = false;
-          n.removeLineOfPosition();
+          self.removeLineOfPosition();
         },
       });
     }
 
-    onRotate(t, r) {
-      this.options.setRotate(r);
+    onRotate(width, rotate) {
+      this.options.setRotate(rotate);
     }
 
-    onResize(t, e, n, i, o) {
-      this.updateSizeAndPositionOptions(o, i, n, e);
+    onResize(width, height, left, top) {
+      this.updateSizeAndPositionOptions(left, top, width, height);
     }
 
     getOrderIndex() {
       return this.options.getTop();
     }
 
-    getHtml(t, e, n) {
-      let i = 0;
-      this.setCurrenttemplateData(e);
-      const o = [];
-      let r = this.getBeginPrintTopInPaperByReferenceElement(t);
-      let a = t.getPaperFooter(i);
+    getHtml(designPaper, templateData, isNew) {
+      let pageIndex = 0;
+      this.setCurrenttemplateData(templateData);
+      const results = [];
+      let printTop =
+        this.getBeginPrintTopInPaperByReferenceElement(designPaper);
+      let paperFooter = designPaper.getPaperFooter(pageIndex);
       if (
         !this.isHeaderOrFooter() &&
         !this.isFixed() &&
-        r > a &&
-        t.panelPageRule !== "none"
+        printTop > paperFooter &&
+        designPaper.panelPageRule !== "none"
       ) {
-        o.push(
+        results.push(
           new _dto_PaperHtmlResult__WEBPACK_IMPORTED_MODULE_3__.a({
             target: void 0,
             printLine: void 0,
           })
         );
-        r = r - a + t.paperHeader;
-        i++;
-        a = t.getPaperFooter(i);
+        printTop = printTop - paperFooter + designPaper.paperHeader;
+        pageIndex++;
+        paperFooter = designPaper.getPaperFooter(pageIndex);
       }
-      const p = this.getData(e);
-      const s = this.createTarget(this.getTitle(), p, n);
-      this.updateTargetSize(s);
-      this.css(s, p);
-      s.css("position", "absolute");
-      s.css("left", this.options.displayLeft());
-      s.css("top", r + "pt");
-      o.push(
+      const data = this.getData(templateData);
+      const target = this.createTarget(this.getTitle(), data, isNew);
+      this.updateTargetSize(target);
+      this.css(target, data);
+      target.css("position", "absolute");
+      target.css("left", this.options.displayLeft());
+      target.css("top", printTop + "pt");
+      results.push(
         new _dto_PaperHtmlResult__WEBPACK_IMPORTED_MODULE_3__.a({
-          target: s,
-          printLine: r + this.options.getHeight(),
+          target: target,
+          printLine: printTop + this.options.getHeight(),
           referenceElement:
             new _PrintReferenceElement__WEBPACK_IMPORTED_MODULE_5__.a({
               top: this.options.getTop(),
               left: this.options.getLeft(),
               height: this.options.getHeight(),
               width: this.options.getWidth(),
-              beginPrintPaperIndex: t.index,
-              bottomInLastPaper: r + this.options.getHeight(),
-              printTopInPaper: r,
+              beginPrintPaperIndex: designPaper.index,
+              bottomInLastPaper: printTop + this.options.getHeight(),
+              printTopInPaper: printTop,
             }),
         })
       );
-      if (e && this.options.pageBreak) {
-        o[0].target.css("top", t.paperHeader + "pt");
-        o[0].referenceElement.top =
-          this.options.getTop() - this.options.getHeight() - t.paperHeader;
-        o[0].printLine = t.paperHeader;
-        o[0].referenceElement.bottomInLastPaper = 0;
-        o[0].referenceElement.printTopInPaper = t.paperHeader;
-        o.unshift(
+      if (templateData && this.options.pageBreak) {
+        results[0].target.css("top", designPaper.paperHeader + "pt");
+        results[0].referenceElement.top =
+          this.options.getTop() -
+          this.options.getHeight() -
+          designPaper.paperHeader;
+        results[0].printLine = designPaper.paperHeader;
+        results[0].referenceElement.bottomInLastPaper = 0;
+        results[0].referenceElement.printTopInPaper = designPaper.paperHeader;
+        results.unshift(
           new _dto_PaperHtmlResult__WEBPACK_IMPORTED_MODULE_3__.a({
-            target: s,
-            printLine: t.height,
+            target: target,
+            printLine: designPaper.height,
             referenceElement:
               new _PrintReferenceElement__WEBPACK_IMPORTED_MODULE_5__.a({
                 top: 0,
                 left: 0,
                 height: 0,
                 width: 0,
-                beginPrintPaperIndex: t.index,
-                bottomInLastPaper: t.height,
-                printTopInPaper: t.paperHeader,
+                beginPrintPaperIndex: designPaper.index,
+                bottomInLastPaper: designPaper.height,
+                printTopInPaper: designPaper.paperHeader,
               }),
           })
         );
       }
-      return o;
+      return results;
     }
 
-    getHtml2(t, e, n) {
-      let i = 0;
-      this.setCurrenttemplateData(e);
-      const o = [];
-      let r = this.getBeginPrintTopInPaperByReferenceElement(t);
-      let a = t.getPaperFooter(i);
+    getHtml2(designPaper, templateData, isNew) {
+      let pageIndex = 0;
+      this.setCurrenttemplateData(templateData);
+      const results = [];
+      let printTop =
+        this.getBeginPrintTopInPaperByReferenceElement(designPaper);
+      let paperFooter = designPaper.getPaperFooter(pageIndex);
       if (
         !this.isHeaderOrFooter() &&
         !this.isFixed() &&
-        t.panelPageRule !== "none" &&
-        r > a
+        designPaper.panelPageRule !== "none" &&
+        printTop > paperFooter
       ) {
-        o.push(
+        results.push(
           new _dto_PaperHtmlResult__WEBPACK_IMPORTED_MODULE_3__.a({
             target: void 0,
             printLine: void 0,
           })
         );
-        r = r - a + t.paperHeader;
-        i++;
-        a = t.getPaperFooter(i);
+        printTop = printTop - paperFooter + designPaper.paperHeader;
+        pageIndex++;
+        paperFooter = designPaper.getPaperFooter(pageIndex);
       }
       if (
-        r <= a &&
-        e &&
-        r + this.options.getHeight() > a &&
-        t.panelPageRule !== "none"
+        printTop <= paperFooter &&
+        templateData &&
+        printTop + this.options.getHeight() > paperFooter &&
+        designPaper.panelPageRule !== "none"
       ) {
-        o.push(
+        results.push(
           new _dto_PaperHtmlResult__WEBPACK_IMPORTED_MODULE_3__.a({
             target: void 0,
             printLine: void 0,
           })
         );
-        r = t.paperHeader;
-        i++;
-        a = t.getPaperFooter(i);
+        printTop = designPaper.paperHeader;
+        pageIndex++;
+        paperFooter = designPaper.getPaperFooter(pageIndex);
       }
-      const p = this.getData(e);
-      const s = this.createTarget(this.getTitle(), p);
-      if (t.panelPageRule === "none" && r + this.options.getHeight() > a) {
-        this.updatePanelHeight(r + this.options.getHeight(), t);
+      const data = this.getData(templateData);
+      const target = this.createTarget(this.getTitle(), data);
+      if (
+        designPaper.panelPageRule === "none" &&
+        printTop + this.options.getHeight() > paperFooter
+      ) {
+        this.updatePanelHeight(
+          printTop + this.options.getHeight(),
+          designPaper
+        );
       }
-      this.updateTargetSize(s);
-      this.css(s, p);
-      s.css("position", "absolute");
-      s.css("left", this.options.displayLeft());
-      s.css("top", r + "pt");
-      o.push(
+      this.updateTargetSize(target);
+      this.css(target, data);
+      target.css("position", "absolute");
+      target.css("left", this.options.displayLeft());
+      target.css("top", printTop + "pt");
+      results.push(
         new _dto_PaperHtmlResult__WEBPACK_IMPORTED_MODULE_3__.a({
-          target: s,
-          printLine: r + this.options.getHeight(),
+          target: target,
+          printLine: printTop + this.options.getHeight(),
           referenceElement:
             new _PrintReferenceElement__WEBPACK_IMPORTED_MODULE_5__.a({
               top: this.options.getTop(),
               left: this.options.getLeft(),
               height: this.options.getHeight(),
               width: this.options.getWidth(),
-              beginPrintPaperIndex: t.index,
-              bottomInLastPaper: r + this.options.getHeight(),
-              printTopInPaper: r,
+              beginPrintPaperIndex: designPaper.index,
+              bottomInLastPaper: printTop + this.options.getHeight(),
+              printTopInPaper: printTop,
             }),
         })
       );
-      if (e && this.options.pageBreak) {
-        o[0].target.css("top", t.paperHeader + "pt");
-        o[0].referenceElement.top =
-          this.options.getTop() - this.options.getHeight() - t.paperHeader;
-        o[0].printLine = t.paperHeader;
-        o[0].referenceElement.bottomInLastPaper = 0;
-        o[0].referenceElement.printTopInPaper = t.paperHeader;
-        o.unshift(
+      if (templateData && this.options.pageBreak) {
+        results[0].target.css("top", designPaper.paperHeader + "pt");
+        results[0].referenceElement.top =
+          this.options.getTop() -
+          this.options.getHeight() -
+          designPaper.paperHeader;
+        results[0].printLine = designPaper.paperHeader;
+        results[0].referenceElement.bottomInLastPaper = 0;
+        results[0].referenceElement.printTopInPaper = designPaper.paperHeader;
+        results.unshift(
           new _dto_PaperHtmlResult__WEBPACK_IMPORTED_MODULE_3__.a({
-            target: s,
-            printLine: t.height,
+            target: target,
+            printLine: designPaper.height,
             referenceElement:
               new _PrintReferenceElement__WEBPACK_IMPORTED_MODULE_5__.a({
                 top: 0,
                 left: 0,
                 height: 0,
                 width: 0,
-                beginPrintPaperIndex: t.index,
-                bottomInLastPaper: t.height,
-                printTopInPaper: t.paperHeader,
+                beginPrintPaperIndex: designPaper.index,
+                bottomInLastPaper: designPaper.height,
+                printTopInPaper: designPaper.paperHeader,
               }),
           })
         );
       }
-      return o;
+      return results;
     }
 
-    updatePanelHeight(h, p) {
+    updatePanelHeight(height, designPaper) {
       if (this.panel.panelPageRule === "none") {
-        const nmh = hinnn.pt.toMm(h);
-        p.paperFooter = h;
-        p.target.css("height", nmh + "mm");
-        p.target.attr("original-height", nmh);
+        const newHeightMm = hinnn.pt.toMm(height);
+        designPaper.paperFooter = height;
+        designPaper.target.css("height", newHeightMm + "mm");
+        designPaper.target.attr("original-height", newHeightMm);
       }
     }
 
-    getBeginPrintTopInPaperByReferenceElement(t) {
-      const e = this.options.getTop();
+    getBeginPrintTopInPaperByReferenceElement(designPaper) {
+      const top = this.options.getTop();
       return this.isHeaderOrFooter() || this.isFixed()
-        ? e
-        : t.referenceElement.isPositionLeftOrRight(e)
-        ? t.referenceElement.printTopInPaper + (e - t.referenceElement.top)
-        : t.referenceElement.bottomInLastPaper +
-          (e - (t.referenceElement.top + t.referenceElement.height));
+        ? top
+        : designPaper.referenceElement.isPositionLeftOrRight(top)
+        ? designPaper.referenceElement.printTopInPaper +
+          (top - designPaper.referenceElement.top)
+        : designPaper.referenceElement.bottomInLastPaper +
+          (top -
+            (designPaper.referenceElement.top +
+              designPaper.referenceElement.height));
     }
 
-    css(t, e) {
-      const n = this;
-      const i = [];
-      const o = this.getConfigOptions();
+    css(target, data) {
+      const self = this;
+      const cssRules = [];
+      const configOptions = this.getConfigOptions();
 
-      if (o) {
-        let r;
-        if (o.tabs && o.tabs.length) {
-          r = [];
-          o.tabs.forEach(function (n) {
-            r = r.concat(n.options);
+      if (configOptions) {
+        let options;
+        if (configOptions.tabs && configOptions.tabs.length) {
+          options = [];
+          configOptions.tabs.forEach(function (tab) {
+            options = options.concat(tab.options);
           });
         } else {
-          r = o.supportOptions;
+          options = configOptions.supportOptions;
         }
-        if (r) {
-          r.forEach(function (e) {
-            const o =
+        if (options) {
+          options.forEach(function (option) {
+            const optionItem =
               _print_element_option_PrintElementOptionItemManager__WEBPACK_IMPORTED_MODULE_2__.a.getItem(
-                e.name
+                option.name
               );
-            if (o && o.css) {
-              const r = o.css(
-                t,
-                n.options.getValueFromOptionsOrDefault(e.name)
+            if (optionItem && optionItem.css) {
+              const cssRule = optionItem.css(
+                target,
+                self.options.getValueFromOptionsOrDefault(option.name)
               );
-              if (r) i.push(r);
+              if (cssRule) cssRules.push(cssRule);
             }
           });
         }
       }
 
-      this.stylerCss(t, e);
+      this.stylerCss(target, data);
     }
 
-    stylerCss(t, e) {
-      const n = this.getStyler();
+    stylerCss(target, data) {
+      const styler = this.getStyler();
 
-      if (n) {
-        const i = n(e, this.options, t, this._currenttemplateData);
-        if (i) {
-          Object.keys(i).forEach(function (e) {
-            t.css(e, i[e]);
+      if (styler) {
+        const styles = styler(
+          data,
+          this.options,
+          target,
+          this._currenttemplateData
+        );
+        if (styles) {
+          Object.keys(styles).forEach(function (styleName) {
+            target.css(styleName, styles[styleName]);
           });
         }
       }
     }
 
-    getData(t) {
-      const f = this.getField();
-      return t
-        ? f
-          ? f.split(".").reduce((a, c) => (a ? a[c] : t ? t[c] : ""), false) ||
-            ""
+    getData(templateData) {
+      const field = this.getField();
+      return templateData
+        ? field
+          ? field
+              .split(".")
+              .reduce(
+                (acc, curr) =>
+                  acc ? acc[curr] : templateData ? templateData[curr] : "",
+                false
+              ) || ""
           : ""
         : this.printElementType.getData();
     }
@@ -734,23 +788,23 @@ export default function CreateBasePrintElement(module, exports, require) {
     copyFromType() {
       const options = this.options;
       const type = this.printElementType;
-      const o = this.getConfigOptions();
-      let names = [];
-      if (o && o.tabs && o.tabs.length) {
-        o.tabs.forEach(function (n) {
-          n.options.forEach(function (e) {
-            names.push(e.name);
+      const configOptions = this.getConfigOptions();
+      let optionNames = [];
+      if (configOptions && configOptions.tabs && configOptions.tabs.length) {
+        configOptions.tabs.forEach(function (tab) {
+          tab.options.forEach(function (option) {
+            optionNames.push(option.name);
           });
         });
       } else {
-        names = o.supportOptions.map(function (e) {
-          return e.name;
+        optionNames = configOptions.supportOptions.map(function (option) {
+          return option.name;
         });
       }
-      Object.keys(type).forEach(function (e) {
-        if (type[e] && e !== "columns" && names.indexOf(e) > -1) {
-          options[e] =
-            typeof type[e] === "function" ? type[e].toString() : type[e];
+      Object.keys(type).forEach(function (key) {
+        if (type[key] && key !== "columns" && optionNames.indexOf(key) > -1) {
+          options[key] =
+            typeof type[key] === "function" ? type[key].toString() : type[key];
         }
       });
       return options;
@@ -759,22 +813,22 @@ export default function CreateBasePrintElement(module, exports, require) {
     getPrintElementOptionTabs() {
       if (this._printElementOptionTabs) return this._printElementOptionTabs;
       const tabs = [];
-      const e = this.getConfigOptions();
-      if (e) {
-        const t = e.tabs;
-        if (t) {
-          t.forEach(function (n, i) {
-            tabs.push({ name: n.name, list: [] });
-            n.options
-              .filter(function (t) {
-                return !t.hidden;
+      const configOptions = this.getConfigOptions();
+      if (configOptions) {
+        const tabOptions = configOptions.tabs;
+        if (tabOptions) {
+          tabOptions.forEach(function (tab, index) {
+            tabs.push({ name: tab.name, list: [] });
+            tab.options
+              .filter(function (option) {
+                return !option.hidden;
               })
-              .forEach(function (e) {
-                const n =
+              .forEach(function (option) {
+                const optionItem =
                   _print_element_option_PrintElementOptionItemManager__WEBPACK_IMPORTED_MODULE_2__.a.getItem(
-                    e.name
+                    option.name
                   );
-                tabs[i].list.push(n);
+                tabs[index].list.push(optionItem);
               });
           });
         }
@@ -786,73 +840,77 @@ export default function CreateBasePrintElement(module, exports, require) {
 
     getPrintElementOptionItems() {
       if (this._printElementOptionItems) return this._printElementOptionItems;
-      const t = [];
-      const e = this.getConfigOptions();
+      const items = [];
+      const configOptions = this.getConfigOptions();
 
-      if (e) {
-        let n;
-        if (e.tabs && e.tabs.length) {
-          n = [];
-          e.tabs.forEach(function (n) {
-            n = n.concat(n.options);
+      if (configOptions) {
+        let options;
+        if (configOptions.tabs && configOptions.tabs.length) {
+          options = [];
+          configOptions.tabs.forEach(function (tab) {
+            options = options.concat(tab.options);
           });
         } else {
-          n = e.supportOptions;
+          options = configOptions.supportOptions;
         }
-        if (n) {
-          n.filter(function (t) {
-            return !t.hidden;
-          }).forEach(function (e) {
-            const n =
-              _print_element_option_PrintElementOptionItemManager__WEBPACK_IMPORTED_MODULE_2__.a.getItem(
-                e.name
-              );
-            t.push(n);
-          });
+        if (options) {
+          options
+            .filter(function (option) {
+              return !option.hidden;
+            })
+            .forEach(function (option) {
+              const optionItem =
+                _print_element_option_PrintElementOptionItemManager__WEBPACK_IMPORTED_MODULE_2__.a.getItem(
+                  option.name
+                );
+              items.push(optionItem);
+            });
         }
       }
 
-      this._printElementOptionItems = this.filterOptionItems(t.concat());
+      this._printElementOptionItems = this.filterOptionItems(items.concat());
       this._printElementOptionTabs = void 0;
       return this._printElementOptionItems;
     }
 
-    getPrintElementOptionItemsByName(t) {
-      const e = [];
-      const n = this.getConfigOptionsByName(t);
+    getPrintElementOptionItemsByName(name) {
+      const items = [];
+      const configOptions = this.getConfigOptionsByName(name);
 
-      if (n) {
-        let i;
-        if (n.tabs && n.tabs.length) {
-          i = [];
-          n.tabs.forEach(function (n) {
-            i = i.concat(n.options);
+      if (configOptions) {
+        let options;
+        if (configOptions.tabs && configOptions.tabs.length) {
+          options = [];
+          configOptions.tabs.forEach(function (tab) {
+            options = options.concat(tab.options);
           });
         } else {
-          i = n.supportOptions;
+          options = configOptions.supportOptions;
         }
-        if (i) {
-          i.filter(function (t) {
-            return !t.hidden;
-          }).forEach(function (t) {
-            const n =
-              _print_element_option_PrintElementOptionItemManager__WEBPACK_IMPORTED_MODULE_2__.a.getItem(
-                t.name
-              );
-            e.push(n);
-          });
+        if (options) {
+          options
+            .filter(function (option) {
+              return !option.hidden;
+            })
+            .forEach(function (option) {
+              const optionItem =
+                _print_element_option_PrintElementOptionItemManager__WEBPACK_IMPORTED_MODULE_2__.a.getItem(
+                  option.name
+                );
+              items.push(optionItem);
+            });
         }
       }
 
-      return e.concat();
+      return items.concat();
     }
 
-    filterOptionItems(t) {
+    filterOptionItems(items) {
       return this.printElementType.field
-        ? t.filter(function (t) {
-            return t.name !== "field";
+        ? items.filter(function (item) {
+            return item.name !== "field";
           })
-        : t;
+        : items;
     }
 
     createTempContainer() {
@@ -883,159 +941,207 @@ export default function CreateBasePrintElement(module, exports, require) {
       if (this.designTarget) this.designTarget.remove();
     }
 
-    setCurrenttemplateData(t) {
-      this._currenttemplateData = t;
+    setCurrenttemplateData(templateData) {
+      this._currenttemplateData = templateData;
     }
 
     isFixed() {
       return this.options.fixed;
     }
 
-    onRendered(t, e) {
+    onRendered(target, event) {
       if (this.printElementType && this.printElementType.onRendered) {
-        this.printElementType.onRendered(e, this.options, t.getTarget());
+        this.printElementType.onRendered(
+          event,
+          this.options,
+          target.getTarget()
+        );
       }
     }
 
-    createLineOfPosition(t) {
-      const e = $(".toplineOfPosition.id" + this.id);
-      const topPos = $(".topPosition.id" + this.id);
-      const n = $(".leftlineOfPosition.id" + this.id);
-      const leftPos = $(".leftPosition.id" + this.id);
-      const i = $(".rightlineOfPosition.id" + this.id);
-      const o = $(".bottomlineOfPosition.id" + this.id);
+    createLineOfPosition(designPaper) {
+      const topLine = $(".toplineOfPosition.id" + this.id);
+      const topPosition = $(".topPosition.id" + this.id);
+      const leftLine = $(".leftlineOfPosition.id" + this.id);
+      const leftPosition = $(".leftPosition.id" + this.id);
+      const rightLine = $(".rightlineOfPosition.id" + this.id);
+      const bottomLine = $(".bottomlineOfPosition.id" + this.id);
       const config = _HiPrintConfig__WEBPACK_IMPORTED_MODULE_1__.a.instance;
-      if (e.length) {
-        e.css("top", this.options.displayTop(true));
+      if (topLine.length) {
+        topLine.css("top", this.options.displayTop(true));
       } else {
-        const e = $(
+        const newTopLine = $(
           '<div class="toplineOfPosition id' +
             this.id +
             '" style="position: absolute; width: 100%;"></div>'
         );
-        e.css("top", this.options.displayTop(true));
-        e.css("width", t.displayWidth());
-        this.designTarget.parents(".hiprint-printPaper-content").append(e);
+        newTopLine.css("top", this.options.displayTop(true));
+        newTopLine.css("width", designPaper.displayWidth());
+        this.designTarget
+          .parents(".hiprint-printPaper-content")
+          .append(newTopLine);
       }
       if (config.showPosition) {
-        if (topPos.length) {
-          topPos.toggleClass("topPosition-lineMode", config.positionLineMode);
-          topPos.text(
+        if (topPosition.length) {
+          topPosition.toggleClass(
+            "topPosition-lineMode",
+            config.positionLineMode
+          );
+          topPosition.text(
             this.options.posTop() + (config.positionUnit ? "pt" : "")
           );
-          topPos.css("top", this.options.posTop() - topPos.height() + "pt");
+          topPosition.css(
+            "top",
+            this.options.posTop() - topPosition.height() + "pt"
+          );
           if (config.positionLineMode) {
-            topPos.css(
+            topPosition.css(
               "left",
-              this.options.posLeft() - topPos.width() / 2 + "pt"
+              this.options.posLeft() - topPosition.width() / 2 + "pt"
             );
           } else {
-            topPos.css("left", this.options.posLeft() + 2 + "pt");
+            topPosition.css("left", this.options.posLeft() + 2 + "pt");
           }
           if (this.designTarget.find(".size-box")) {
             this.designTarget.find(".size-box").toggleClass("hide", true);
           }
         } else {
-          const topPos = $(
+          const newTopPosition = $(
             '<div class="topPosition id' +
               this.id +
               '" style="position: absolute;"></div>'
           );
-          topPos.toggleClass("topPosition-lineMode", config.positionLineMode);
-          topPos.text(
+          newTopPosition.toggleClass(
+            "topPosition-lineMode",
+            config.positionLineMode
+          );
+          newTopPosition.text(
             this.options.posTop() + (config.positionUnit ? "pt" : "")
           );
           if (config.positionLineMode) {
-            topPos.css(
+            newTopPosition.css(
               "left",
-              this.options.posLeft() - topPos.width() / 2 + "pt"
+              this.options.posLeft() - newTopPosition.width() / 2 + "pt"
             );
           } else {
-            topPos.css("left", this.options.posLeft() + 2 + "pt");
+            newTopPosition.css("left", this.options.posLeft() + 2 + "pt");
           }
           if (this.designTarget.find(".size-box")) {
             this.designTarget.find(".size-box").toggleClass("hide", true);
           }
           this.designTarget
             .parents(".hiprint-printPaper-content")
-            .append(topPos);
-          topPos.css("top", this.options.posTop() - topPos.height() + "pt");
+            .append(newTopPosition);
+          newTopPosition.css(
+            "top",
+            this.options.posTop() - newTopPosition.height() + "pt"
+          );
         }
       }
-      if (n.length) {
-        n.css("left", this.options.displayLeft(true));
+      if (leftLine.length) {
+        leftLine.css("left", this.options.displayLeft(true));
       } else {
-        const r = $(
+        const newLeftLine = $(
           '<div class="leftlineOfPosition id' +
             this.id +
             '" style="position: absolute;height: 100%;"></div>'
         );
-        r.css("left", this.options.displayLeft(true));
-        r.css("height", t.displayHeight());
-        this.designTarget.parents(".hiprint-printPaper-content").append(r);
+        newLeftLine.css("left", this.options.displayLeft(true));
+        newLeftLine.css("height", designPaper.displayHeight());
+        this.designTarget
+          .parents(".hiprint-printPaper-content")
+          .append(newLeftLine);
       }
       if (config.showPosition) {
-        if (leftPos.length) {
-          leftPos.text(
+        if (leftPosition.length) {
+          leftPosition.text(
             this.options.posLeft() + (config.positionUnit ? "pt" : "")
           );
-          leftPos.toggleClass("leftPosition-lineMode", config.positionLineMode);
-          leftPos.css("left", this.options.posLeft() - leftPos.width() + "pt");
+          leftPosition.toggleClass(
+            "leftPosition-lineMode",
+            config.positionLineMode
+          );
+          leftPosition.css(
+            "left",
+            this.options.posLeft() - leftPosition.width() + "pt"
+          );
           if (config.positionLineMode) {
-            leftPos.css(
+            leftPosition.css(
               "top",
-              this.options.posTop() - leftPos.height() / 3 + "pt"
+              this.options.posTop() - leftPosition.height() / 3 + "pt"
             );
           } else {
-            leftPos.css("top", this.options.posTop() + 2 + "pt");
+            leftPosition.css("top", this.options.posTop() + 2 + "pt");
           }
         } else {
-          const leftPos = $(
+          const newLeftPosition = $(
             '<div class="leftPosition id' +
               this.id +
               '" style="position: absolute;"></div>'
           );
-          leftPos.text(
+          newLeftPosition.text(
             this.options.posLeft() + (config.positionUnit ? "pt" : "")
           );
-          leftPos.toggleClass("leftPosition-lineMode", config.positionLineMode);
+          newLeftPosition.toggleClass(
+            "leftPosition-lineMode",
+            config.positionLineMode
+          );
           if (config.positionLineMode) {
-            leftPos.css(
+            newLeftPosition.css(
               "top",
-              this.options.posTop() - leftPos.height() / 3 + "pt"
+              this.options.posTop() - newLeftPosition.height() / 3 + "pt"
             );
           } else {
-            leftPos.css("top", this.options.posTop() + 2 + "pt");
+            newLeftPosition.css("top", this.options.posTop() + 2 + "pt");
           }
           this.designTarget
             .parents(".hiprint-printPaper-content")
-            .append(leftPos);
-          leftPos.css("left", this.options.posLeft() - leftPos.width() + "pt");
+            .append(newLeftPosition);
+          newLeftPosition.css(
+            "left",
+            this.options.posLeft() - newLeftPosition.width() + "pt"
+          );
         }
       }
-      if (i.length) {
-        i.css("left", this.options.getLeft() + this.options.getWidth() + "pt");
+      if (rightLine.length) {
+        rightLine.css(
+          "left",
+          this.options.getLeft() + this.options.getWidth() + "pt"
+        );
       } else {
-        const a = $(
+        const newRightLine = $(
           '<div class="rightlineOfPosition id' +
             this.id +
             '" style="position: absolute;height: 100%;"></div>'
         );
-        a.css("left", this.options.getLeft() + this.options.getWidth() + "pt");
-        a.css("height", t.displayHeight());
-        this.designTarget.parents(".hiprint-printPaper-content").append(a);
+        newRightLine.css(
+          "left",
+          this.options.getLeft() + this.options.getWidth() + "pt"
+        );
+        newRightLine.css("height", designPaper.displayHeight());
+        this.designTarget
+          .parents(".hiprint-printPaper-content")
+          .append(newRightLine);
       }
-      if (o.length) {
-        o.css("top", this.options.getTop() + this.options.getHeight() + "pt");
+      if (bottomLine.length) {
+        bottomLine.css(
+          "top",
+          this.options.getTop() + this.options.getHeight() + "pt"
+        );
       } else {
-        const p = $(
+        const newBottomLine = $(
           '<div class="bottomlineOfPosition id' +
             this.id +
             '" style="position: absolute;width: 100%;"></div>'
         );
-        p.css("top", this.options.getTop() + this.options.getHeight() + "pt");
-        p.css("width", t.displayWidth());
-        this.designTarget.parents(".hiprint-printPaper-content").append(p);
+        newBottomLine.css(
+          "top",
+          this.options.getTop() + this.options.getHeight() + "pt"
+        );
+        newBottomLine.css("width", designPaper.displayWidth());
+        this.designTarget
+          .parents(".hiprint-printPaper-content")
+          .append(newBottomLine);
       }
     }
 
@@ -1052,57 +1158,57 @@ export default function CreateBasePrintElement(module, exports, require) {
     }
 
     getFontList() {
-      let t = this.options.fontList;
-      if (!t) {
-        t = _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance
+      let fontList = this.options.fontList;
+      if (!fontList) {
+        fontList = _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance
           .getPrintTemplateById(this.templateId)
           .getFontList();
       }
-      return t;
+      return fontList;
     }
 
     getFields() {
       if (this.printElementType.type === "table") {
         return this.options.tableFields;
       }
-      let t = this.options.fields;
-      if (!t) {
-        t = _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance
+      let fields = this.options.fields;
+      if (!fields) {
+        fields = _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance
           .getPrintTemplateById(this.templateId)
           .getFields();
       }
-      return t;
+      return fields;
     }
 
     getOnImageChooseClick() {
-      let t = this.options.onImageChooseClick;
-      if (!t) {
-        t = _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance
+      let onImageChooseClick = this.options.onImageChooseClick;
+      if (!onImageChooseClick) {
+        onImageChooseClick = _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance
           .getPrintTemplateById(this.templateId)
           .getOnImageChooseClick();
       }
-      return t;
+      return onImageChooseClick;
     }
 
-    bingCopyEvent(t) {
-      const n = this;
-      t.keydown(function (r) {
-        if (n._editing) {
-          if (!r.altKey && r.keyCode === 13) {
-            n.updateByContent();
+    bindCopyEvent(target) {
+      const self = this;
+      target.keydown(function (event) {
+        if (self._editing) {
+          if (!event.altKey && event.keyCode === 13) {
+            self.updateByContent();
             return;
           }
         }
-        if ((r.ctrlKey || r.metaKey) && r.keyCode === 67) {
-          n.copyJson();
-          r.preventDefault();
+        if ((event.ctrlKey || event.metaKey) && event.keyCode === 67) {
+          self.copyJson();
+          event.preventDefault();
         }
       });
     }
 
     copyJson() {
       try {
-        const n = this;
+        const self = this;
         let copyArea = $("#copyArea");
         if (!copyArea.length) {
           copyArea = $(
@@ -1135,20 +1241,20 @@ export default function CreateBasePrintElement(module, exports, require) {
         let flag = false;
         flag = document.execCommand("copy");
         copyArea.css("visibility", "hidden");
-        n.designTarget.focus();
+        self.designTarget.focus();
         console.log("copyJson success");
-      } catch (e) {
-        console.log("copyJson error", e);
+      } catch (error) {
+        console.log("copyJson error", error);
       }
     }
 
-    clone(t) {
-      const n = this;
-      const newObj = n.printElementType.createPrintElement();
-      Object.keys(n.options).forEach(function (key) {
-        newObj.options[key] = n.options[key];
+    clone(isNew) {
+      const self = this;
+      const newElement = self.printElementType.createPrintElement();
+      Object.keys(self.options).forEach(function (key) {
+        newElement.options[key] = self.options[key];
       });
-      return newObj;
+      return newElement;
     }
 
     getFormatter() {
@@ -1158,70 +1264,70 @@ export default function CreateBasePrintElement(module, exports, require) {
       }
       if (this.options.formatter) {
         try {
-          const s = "formatter=" + this.options.formatter;
-          eval(s);
-        } catch (t) {
-          console.log(t);
+          const script = "formatter=" + this.options.formatter;
+          eval(script);
+        } catch (error) {
+          console.log(error);
         }
       }
       return formatter;
     }
 
     getStyler() {
-      let fnstyler;
+      let stylerFunction;
       if (this.printElementType.styler) {
-        fnstyler = this.printElementType.styler;
+        stylerFunction = this.printElementType.styler;
       }
       if (this.options.styler) {
         try {
-          const s = "fnstyler=" + this.options.styler;
-          eval(s);
-        } catch (t) {
-          console.log(t);
+          const script = "stylerFunction=" + this.options.styler;
+          eval(script);
+        } catch (error) {
+          console.log(error);
         }
       }
-      return fnstyler;
+      return stylerFunction;
     }
 
-    bingKeyboardMoveEvent(t, e) {
-      const n = this;
-      let i;
-      let o;
-      t.attr("tabindex", "1");
-      t.keydown(function (r) {
-        if (r.target.tagName === "INPUT") {
+    bindKeyboardMoveEvent(target, event) {
+      const self = this;
+      let left;
+      let top;
+      target.attr("tabindex", "1");
+      target.keydown(function (keyEvent) {
+        if (keyEvent.target.tagName === "INPUT") {
           return;
         }
-        if (n._editing && !r.altKey) {
+        if (self._editing && !keyEvent.altKey) {
           return;
         }
-        if (n.options.draggable === false) {
+        if (self.options.draggable === false) {
           return;
         }
-        const els = n.panel.printElements.filter(function (t) {
+        const elements = self.panel.printElements.filter(function (element) {
           return (
-            t.designTarget.children().last().css("display") === "block" &&
-            !t.printElementType.type.includes("table")
+            element.designTarget.children().last().css("display") === "block" &&
+            !element.printElementType.type.includes("table")
           );
         });
-        const isMultiple = els.length > 1;
+        const isMultiple = elements.length > 1;
         const movingDistance =
           _HiPrintConfig__WEBPACK_IMPORTED_MODULE_1__.a.instance.movingDistance;
-        switch (r.keyCode) {
+        switch (keyEvent.keyCode) {
           case 8:
           case 46:
-            const templete =
+            const template =
               _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance.getPrintTemplateById(
-                n.templateId
+                self.templateId
               );
-            templete.deletePrintElement(n);
+            template.deletePrintElement(self);
             hinnn.event.trigger(
-              "hiprintTemplateDataChanged_" + n.templateId,
+              "hiprintTemplateDataChanged_" + self.templateId,
               "删除"
             );
             hinnn.event.trigger("clearSettingContainer");
-            els.forEach((ele) => {
-              templete.deletePrintElement(ele);
+            elements.forEach((ele) => {
+              template.deletePrintElement(ele);
               hinnn.event.trigger(
                 "hiprintTemplateDataChanged_" + ele.templateId,
                 "删除"
@@ -1230,92 +1336,92 @@ export default function CreateBasePrintElement(module, exports, require) {
             hinnn.event.trigger("clearSettingContainer");
             break;
           case 37:
-            i = n.options.getLeft();
+            left = self.options.getLeft();
             if (isMultiple) {
-              els.forEach(function (t) {
-                t.updatePositionByMultipleSelect(0 - movingDistance, 0);
+              elements.forEach(function (element) {
+                element.updatePositionByMultipleSelect(0 - movingDistance, 0);
               });
             } else {
-              n.updateSizeAndPositionOptions(i - movingDistance);
-              t.css("left", n.options.displayLeft());
+              self.updateSizeAndPositionOptions(left - movingDistance);
+              target.css("left", self.options.displayLeft());
             }
-            r.preventDefault();
+            keyEvent.preventDefault();
             break;
           case 38:
-            o = n.options.getTop();
+            top = self.options.getTop();
             if (isMultiple) {
-              els.forEach(function (t) {
-                t.updatePositionByMultipleSelect(0, 0 - movingDistance);
+              elements.forEach(function (element) {
+                element.updatePositionByMultipleSelect(0, 0 - movingDistance);
               });
             } else {
-              n.updateSizeAndPositionOptions(void 0, o - movingDistance);
-              t.css("top", n.options.displayTop());
+              self.updateSizeAndPositionOptions(void 0, top - movingDistance);
+              target.css("top", self.options.displayTop());
             }
-            r.preventDefault();
+            keyEvent.preventDefault();
             break;
           case 39:
-            i = n.options.getLeft();
+            left = self.options.getLeft();
             if (isMultiple) {
-              els.forEach(function (t) {
-                t.updatePositionByMultipleSelect(movingDistance, 0);
+              elements.forEach(function (element) {
+                element.updatePositionByMultipleSelect(movingDistance, 0);
               });
             } else {
-              n.updateSizeAndPositionOptions(i + movingDistance);
-              t.css("left", n.options.displayLeft());
+              self.updateSizeAndPositionOptions(left + movingDistance);
+              target.css("left", self.options.displayLeft());
             }
-            r.preventDefault();
+            keyEvent.preventDefault();
             break;
           case 40:
-            o = n.options.getTop();
+            top = self.options.getTop();
             if (isMultiple) {
-              els.forEach(function (t) {
-                t.updatePositionByMultipleSelect(0, movingDistance);
+              elements.forEach(function (element) {
+                element.updatePositionByMultipleSelect(0, movingDistance);
               });
             } else {
-              n.updateSizeAndPositionOptions(void 0, o + movingDistance);
-              t.css("top", n.options.displayTop());
+              self.updateSizeAndPositionOptions(void 0, top + movingDistance);
+              target.css("top", self.options.displayTop());
             }
-            r.preventDefault();
+            keyEvent.preventDefault();
         }
-        if ([37, 38, 39, 40].includes(r.keyCode)) {
+        if ([37, 38, 39, 40].includes(keyEvent.keyCode)) {
           hinnn.event.trigger(
-            "hiprintTemplateDataChanged_" + n.templateId,
+            "hiprintTemplateDataChanged_" + self.templateId,
             "键盘移动"
           );
         }
       });
     }
 
-    inRect(t) {
-      const ptr = this.designPaper.scale || 1;
+    inRect(event) {
+      const scale = this.designPaper.scale || 1;
       const x1 = this.designTarget[0].offsetLeft;
       const y1 = this.designTarget[0].offsetTop;
-      const h = this.designTarget[0].offsetHeight;
-      const w = this.designTarget[0].offsetWidth;
-      const x2 = x1 + w;
-      const y2 = y1 + h;
-      const ex1 = $(t.target[0]).position().left / ptr;
-      const ey1 = $(t.target[0]).position().top / ptr;
-      const eh = t.target[0].offsetHeight;
-      const ew = t.target[0].offsetWidth;
-      const ex2 = ex1 + ew;
-      const ey2 = ey1 + eh;
+      const height = this.designTarget[0].offsetHeight;
+      const width = this.designTarget[0].offsetWidth;
+      const x2 = x1 + width;
+      const y2 = y1 + height;
+      const ex1 = $(event.target[0]).position().left / scale;
+      const ey1 = $(event.target[0]).position().top / scale;
+      const eventHeight = event.target[0].offsetHeight;
+      const eventWidth = event.target[0].offsetWidth;
+      const ex2 = ex1 + eventWidth;
+      const ey2 = ey1 + eventHeight;
       return ex1 < x2 && ex2 > x1 && y1 < ey2 && y2 > ey1;
     }
 
-    multipleSelect(t) {
-      if (t) {
+    multipleSelect(isSelected) {
+      if (isSelected) {
         this.designTarget.addClass("multipleSelect");
       } else {
         this.designTarget.removeClass("multipleSelect");
       }
     }
 
-    updatePositionByMultipleSelect(t, e) {
+    updatePositionByMultipleSelect(deltaX, deltaY) {
       if (this.options.draggable === false) return;
       this.updateSizeAndPositionOptions(
-        t + this.options.getLeft(),
-        e + this.options.getTop()
+        deltaX + this.options.getLeft(),
+        deltaY + this.options.getTop()
       );
       this.designTarget.css("left", this.options.displayLeft());
       this.designTarget.css("top", this.options.displayTop());

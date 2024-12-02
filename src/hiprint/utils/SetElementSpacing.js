@@ -891,7 +891,7 @@ export default function (t, e, n) {
           );
         }),
         (e.prototype.getProxyTarget = function (t) {
-          t && this.SetProxyTargetOption(t);
+          t && this.setProxyTargetOption(t);
           var e = this.getData(),
             n = this.createTarget(this.printElementType.getText(!0), e);
           return this.updateTargetSize(n), this.css(n, e), n;
@@ -1356,7 +1356,7 @@ export default function (t, e, n) {
           return t.prototype.getDesignTarget.call(this, e);
         }),
         (e.prototype.getProxyTarget = function (t) {
-          t && this.SetProxyTargetOption(t);
+          t && this.setProxyTargetOption(t);
           var e = this.getData(),
             n = this.createTarget(this.printElementType.getText(!0), e);
           return this.updateTargetSize(n), this.css(n, e), n;
@@ -3570,7 +3570,7 @@ export default function (t, e, n) {
               '<div tabindex="1" class="mouseRect" style="z-index:2;position: absolute;opacity:0.2;border: 1px dashed #000;background-color:#31676f;"><span></span></div>'
             )),
             n.find(".hiprint-printPaper-content").append(this.mouseRect.target),
-            this.bingKeyboardMoveEvent(this.mouseRect.target),
+            this.bindKeyboardMoveEvent(this.mouseRect.target),
             this.mouseRect.target.hidraggable({
               onDrag: function onDrag(t, n, i) {
                 (e.mouseRect.lastLeft = e.mouseRect.lastLeft
@@ -3657,7 +3657,7 @@ export default function (t, e, n) {
           }
           t.target.focus();
         }),
-        (t.prototype.bingKeyboardMoveEvent = function (t) {
+        (t.prototype.bindKeyboardMoveEvent = function (t) {
           var e = this;
           t.attr("tabindex", "1"),
             t.keydown(function (t) {

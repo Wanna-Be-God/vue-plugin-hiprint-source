@@ -741,7 +741,7 @@ export default function TablePrintElementFactory(module, exports, require) {
                   n.removeLineOfPosition();
               },
             }),
-            this.bingKeyboardMoveEvent(this.designTarget, e);
+            this.bindKeyboardMoveEvent(this.designTarget, e);
         }),
         (TablePrintElement.prototype.setHitable = function () {
           var t = this;
