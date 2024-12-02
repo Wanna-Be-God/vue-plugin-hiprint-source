@@ -1,5 +1,11 @@
 import { _typeof } from "../utils/Utils.js";
 
+/**
+ * 创建基础打印元素类
+ * @param {object} module - 模块对象
+ * @param {object} exports - 导出对象 
+ * @param {function} require - require函数
+ */
 export default function CreateBasePrintElement(module, exports, require) {
   "use strict";
 
@@ -7,24 +13,37 @@ export default function CreateBasePrintElement(module, exports, require) {
     return BasePrintElement;
   });
 
-  var _entity_PrintElementEntity__WEBPACK_IMPORTED_MODULE_0__ = require(17),
-    _HiPrintConfig__WEBPACK_IMPORTED_MODULE_1__ = require(1),
-    _print_element_option_PrintElementOptionItemManager__WEBPACK_IMPORTED_MODULE_2__ = require(9),
-    _dto_PaperHtmlResult__WEBPACK_IMPORTED_MODULE_3__ = require(6),
-    _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_4__ = require(0),
-    _PrintReferenceElement__WEBPACK_IMPORTED_MODULE_5__ = require(8),
-    _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__ = require(2);
+  var require_PrintElementEntity = require(17),
+    require_HiPrintConfig = require(1),
+    require_PrintElementOptionItemManager = require(9),
+    require_PaperHtmlResult = require(6),
+    require_PrintReferenceElement = require(8),
+    require_HiPrintlib = require(2);
 
   class BasePrintElement {
+    /**
+     * 基础打印元素构造函数
+     * @param {object} printElementType - 打印元素类型对象
+     */
     constructor(printElementType) {
       this.printElementType = printElementType;
-      this.id = _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance.guid();
+      this.id = require_HiPrintlib.a.instance.guid();
     }
 
+    /**
+     * 根据名称获取配置选项
+     * @param {string} name - 配置名称
+     * @returns {object} 配置选项对象
+     */
     getConfigOptionsByName(name) {
-      return _HiPrintConfig__WEBPACK_IMPORTED_MODULE_1__.a.instance[name];
+      return require_HiPrintConfig.a.instance[name];
     }
 
+    /**
+     * 获取代理目标元素
+     * @param {object} options - 选项对象
+     * @returns {object} 目标元素
+     */
     getProxyTarget(options) {
       if (options) this.setProxyTargetOption(options);
       const data = this.getData();
@@ -34,12 +53,22 @@ export default function CreateBasePrintElement(module, exports, require) {
       return target;
     }
 
+    /**
+     * 设置代理目标选项
+     * @param {object} options - 选项对象
+     */
     setProxyTargetOption(options) {
       this.options.getPrintElementOptionEntity();
       $.extend(this.options, options);
       this.copyFromType();
     }
 
+    /**
+     * 判断元素是否在指定页面显示
+     * @param {number} pageIndex - 页面索引
+     * @param {number} totalPages - 总页数
+     * @returns {boolean} 是否显示
+     */
     showInPage(pageIndex, totalPages) {
       const showInPage = this.options.showInPage;
       const unShowInPage = this.options.unShowInPage;
@@ -62,27 +91,49 @@ export default function CreateBasePrintElement(module, exports, require) {
       );
     }
 
+    /**
+     * 设置模板ID
+     * @param {string} templateId - 模板ID
+     */
     setTemplateId(templateId) {
       this.templateId = templateId;
     }
 
+    /**
+     * 设置面板
+     * @param {object} panel - 面板对象
+     */
     setPanel(panel) {
       this.panel = panel;
     }
 
+    /**
+     * 获取字段名
+     * @returns {string} 字段名
+     */
     getField() {
       return this.options.field || this.printElementType.field;
     }
 
+    /**
+     * 获取标题
+     * @returns {string} 标题
+     */
     getTitle() {
       return this.printElementType.title;
     }
 
+    /**
+     * 更新元素的大小和位置选项
+     * @param {number} left - 左边距
+     * @param {number} top - 上边距 
+     * @param {number} width - 宽度
+     * @param {number} height - 高度
+     */
     updateSizeAndPositionOptions(left, top, width, height) {
-      const template =
-        _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance.getPrintTemplateById(
-          this.templateId
-        );
+      const template = require_HiPrintlib.a.instance.getPrintTemplateById(
+        this.templateId
+      );
       if (this.panel !== void 0 && !template.willOutOfBounds) {
         const panelWidthPt = hinnn.mm.toPt(this.panel.width);
         const panelHeightPt = hinnn.mm.toPt(this.panel.height);
@@ -102,6 +153,10 @@ export default function CreateBasePrintElement(module, exports, require) {
       this.options.setHeight(height);
     }
 
+    /**
+     * 根据HTML元素初始化大小
+     * @param {object} htmlElement - HTML元素
+     */
     initSizeByHtml(htmlElement) {
       if (htmlElement && htmlElement.length) {
         this.createTempContainer();
@@ -115,15 +170,28 @@ export default function CreateBasePrintElement(module, exports, require) {
       }
     }
 
+    /**
+     * 更新目标元素大小
+     * @param {object} target - 目标元素
+     */
     updateTargetSize(target) {
       target.css("width", this.options.displayWidth());
       target.css("height", this.options.displayHeight());
     }
 
+    /**
+     * 更新目标元素宽度
+     * @param {object} target - 目标元素
+     */
     updateTargetWidth(target) {
       target.css("width", this.options.displayWidth());
     }
 
+    /**
+     * 获取设计目标元素
+     * @param {object} designPaper - 设计纸张对象
+     * @returns {object} 设计目标元素
+     */
     getDesignTarget(designPaper) {
       const self = this;
       let lastTimeStamp = 0;
@@ -163,6 +231,10 @@ export default function CreateBasePrintElement(module, exports, require) {
       return this.designTarget;
     }
 
+    /**
+     * 选择文本末尾
+     * @param {object} element - 元素对象
+     */
     selectEnd(element) {
       element.focus();
       if (
@@ -183,6 +255,10 @@ export default function CreateBasePrintElement(module, exports, require) {
       }
     }
 
+    /**
+     * 根据内容更新元素
+     * @param {boolean} clear - 是否清除
+     */
     updateByContent(clear) {
       const self = this;
       const content = self.designTarget.find(".hiprint-printElement-content");
@@ -225,10 +301,19 @@ export default function CreateBasePrintElement(module, exports, require) {
       }
     }
 
+    /**
+     * 获取打印元素选择事件key
+     * @returns {string} 事件key
+     */
     getPrintElementSelectEventKey() {
       return "PrintElementSelectEventKey_" + this.templateId;
     }
 
+    /**
+     * 设计模式相关操作
+     * @param {object} designPaper - 设计纸张对象
+     * @param {object} event - 事件对象
+     */
     design(designPaper, event) {
       const self = this;
       this.designTarget.hidraggable({
@@ -269,32 +354,31 @@ export default function CreateBasePrintElement(module, exports, require) {
             self.updateSizeAndPositionOptions(left, offset);
             self.createLineOfPosition(event);
           }
-          _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance.changed = true;
+          require_HiPrintlib.a.instance.changed = true;
         },
         moveUnit: "pt",
-        minMove:
-          _HiPrintConfig__WEBPACK_IMPORTED_MODULE_1__.a.instance.movingDistance,
+        minMove: require_HiPrintConfig.a.instance.movingDistance,
         onBeforeDrag: function onBeforeDrag() {
-          _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance.draging = true;
+          require_HiPrintlib.a.instance.draging = true;
           self.designTarget.focus();
           self.createLineOfPosition(event);
         },
         onBeforeSelectAllDrag: function onBeforeSelectAllDrag() {
-          _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance.draging = true;
+          require_HiPrintlib.a.instance.draging = true;
           self.designTarget.focus();
         },
         getScale: function getScale() {
           return self.designPaper.scale || 1;
         },
         onStopDrag: function onStopDrag() {
-          if (_HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance.changed) {
+          if (require_HiPrintlib.a.instance.changed) {
             hinnn.event.trigger(
               "hiprintTemplateDataChanged_" + self.templateId,
               "移动"
             );
           }
-          _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance.draging = false;
-          _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance.changed = false;
+          require_HiPrintlib.a.instance.draging = false;
+          require_HiPrintlib.a.instance.changed = false;
           const elements = self.panel.printElements.filter(function (element) {
             return (
               element.designTarget.children().last().css("display") ===
@@ -315,19 +399,27 @@ export default function CreateBasePrintElement(module, exports, require) {
       this.bindKeyboardMoveEvent(this.designTarget, event);
     }
 
+    /**
+     * 获取打印元素实体
+     * @param {boolean} isNew - 是否新建
+     * @returns {object} 打印元素实体
+     */
     getPrintElementEntity(isNew) {
       return isNew
-        ? new _entity_PrintElementEntity__WEBPACK_IMPORTED_MODULE_0__.a(
+        ? new require_PrintElementEntity.a(
             void 0,
             this.options.getPrintElementOptionEntity(),
             this.printElementType.getPrintElementTypeEntity()
           )
-        : new _entity_PrintElementEntity__WEBPACK_IMPORTED_MODULE_0__.a(
+        : new require_PrintElementEntity.a(
             this.printElementType.tid,
             this.options.getPrintElementOptionEntity()
           );
     }
 
+    /**
+     * 提交选项更改
+     */
     submitOption() {
       let elements = this.panel.printElements.filter(function (element) {
         return (
@@ -424,6 +516,12 @@ export default function CreateBasePrintElement(module, exports, require) {
       );
     }
 
+    /**
+     * 更新指定选项
+     * @param {string} optionName - 选项名称
+     * @param {*} value - 选项值
+     * @param {boolean} triggerEvent - 是否触发事件
+     */
     updateOption(optionName, value, triggerEvent) {
       try {
         const configOptions = this.getConfigOptions();
@@ -462,25 +560,31 @@ export default function CreateBasePrintElement(module, exports, require) {
       }
     }
 
+    /**
+     * 获取可调整大小的控制点
+     * @returns {string[]} 控制点列表
+     */
     getReizeableShowPoints() {
       return ["barcode", "qrcode"].includes(this.options.textType)
         ? ["se", "s", "e", "r"]
         : ["s", "e", "r"];
     }
 
+    /**
+     * 设置调整大小面板
+     */
     setResizePanel() {
       const self = this;
       const designPaper = this.designPaper;
       this.designTarget.hireizeable({
         showPoints: self.getReizeableShowPoints(),
         draggable: self.options.draggable,
-        showSizeBox:
-          _HiPrintConfig__WEBPACK_IMPORTED_MODULE_1__.a.instance.showSizeBox,
+        showSizeBox: require_HiPrintConfig.a.instance.showSizeBox,
         getScale: function getScale() {
           return self.designPaper.scale || 1;
         },
         onBeforeResize: function onBeforeResize() {
-          _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance.draging = true;
+          require_HiPrintlib.a.instance.draging = true;
         },
         onResize: function onResize(
           width,
@@ -502,24 +606,47 @@ export default function CreateBasePrintElement(module, exports, require) {
             "hiprintTemplateDataChanged_" + self.templateId,
             isRotating ? "旋转" : "大小"
           );
-          _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance.draging = false;
+          require_HiPrintlib.a.instance.draging = false;
           self.removeLineOfPosition();
         },
       });
     }
 
+    /**
+     * 处理元素旋转
+     * @param {number} width - 宽度
+     * @param {number} rotate - 旋转角度
+     */
     onRotate(width, rotate) {
       this.options.setRotate(rotate);
     }
 
+    /**
+     * 处理元素大小调整
+     * @param {number} width - 宽度
+     * @param {number} height - 高度
+     * @param {number} left - 左边距
+     * @param {number} top - 上边距
+     */
     onResize(width, height, left, top) {
       this.updateSizeAndPositionOptions(left, top, width, height);
     }
 
+    /**
+     * 获取元素排序索引
+     * @returns {number} 排序索引
+     */
     getOrderIndex() {
       return this.options.getTop();
     }
 
+    /**
+     * 获取元素HTML
+     * @param {object} designPaper - 设计纸张对象
+     * @param {object} templateData - 模板数据
+     * @param {boolean} isNew - 是否新建
+     * @returns {array} HTML结果数组
+     */
     getHtml(designPaper, templateData, isNew) {
       let pageIndex = 0;
       this.setCurrenttemplateData(templateData);
@@ -534,7 +661,7 @@ export default function CreateBasePrintElement(module, exports, require) {
         designPaper.panelPageRule !== "none"
       ) {
         results.push(
-          new _dto_PaperHtmlResult__WEBPACK_IMPORTED_MODULE_3__.a({
+          new require_PaperHtmlResult.a({
             target: void 0,
             printLine: void 0,
           })
@@ -551,19 +678,18 @@ export default function CreateBasePrintElement(module, exports, require) {
       target.css("left", this.options.displayLeft());
       target.css("top", printTop + "pt");
       results.push(
-        new _dto_PaperHtmlResult__WEBPACK_IMPORTED_MODULE_3__.a({
+        new require_PaperHtmlResult.a({
           target: target,
           printLine: printTop + this.options.getHeight(),
-          referenceElement:
-            new _PrintReferenceElement__WEBPACK_IMPORTED_MODULE_5__.a({
-              top: this.options.getTop(),
-              left: this.options.getLeft(),
-              height: this.options.getHeight(),
-              width: this.options.getWidth(),
-              beginPrintPaperIndex: designPaper.index,
-              bottomInLastPaper: printTop + this.options.getHeight(),
-              printTopInPaper: printTop,
-            }),
+          referenceElement: new require_PrintReferenceElement.a({
+            top: this.options.getTop(),
+            left: this.options.getLeft(),
+            height: this.options.getHeight(),
+            width: this.options.getWidth(),
+            beginPrintPaperIndex: designPaper.index,
+            bottomInLastPaper: printTop + this.options.getHeight(),
+            printTopInPaper: printTop,
+          }),
         })
       );
       if (templateData && this.options.pageBreak) {
@@ -576,25 +702,31 @@ export default function CreateBasePrintElement(module, exports, require) {
         results[0].referenceElement.bottomInLastPaper = 0;
         results[0].referenceElement.printTopInPaper = designPaper.paperHeader;
         results.unshift(
-          new _dto_PaperHtmlResult__WEBPACK_IMPORTED_MODULE_3__.a({
+          new require_PaperHtmlResult.a({
             target: target,
             printLine: designPaper.height,
-            referenceElement:
-              new _PrintReferenceElement__WEBPACK_IMPORTED_MODULE_5__.a({
-                top: 0,
-                left: 0,
-                height: 0,
-                width: 0,
-                beginPrintPaperIndex: designPaper.index,
-                bottomInLastPaper: designPaper.height,
-                printTopInPaper: designPaper.paperHeader,
-              }),
+            referenceElement: new require_PrintReferenceElement.a({
+              top: 0,
+              left: 0,
+              height: 0,
+              width: 0,
+              beginPrintPaperIndex: designPaper.index,
+              bottomInLastPaper: designPaper.height,
+              printTopInPaper: designPaper.paperHeader,
+            }),
           })
         );
       }
       return results;
     }
 
+    /**
+     * 获取元素HTML(版本2)
+     * @param {object} designPaper - 设计纸张对象
+     * @param {object} templateData - 模板数据
+     * @param {boolean} isNew - 是否新建
+     * @returns {array} HTML结果数组
+     */
     getHtml2(designPaper, templateData, isNew) {
       let pageIndex = 0;
       this.setCurrenttemplateData(templateData);
@@ -609,7 +741,7 @@ export default function CreateBasePrintElement(module, exports, require) {
         printTop > paperFooter
       ) {
         results.push(
-          new _dto_PaperHtmlResult__WEBPACK_IMPORTED_MODULE_3__.a({
+          new require_PaperHtmlResult.a({
             target: void 0,
             printLine: void 0,
           })
@@ -625,7 +757,7 @@ export default function CreateBasePrintElement(module, exports, require) {
         designPaper.panelPageRule !== "none"
       ) {
         results.push(
-          new _dto_PaperHtmlResult__WEBPACK_IMPORTED_MODULE_3__.a({
+          new require_PaperHtmlResult.a({
             target: void 0,
             printLine: void 0,
           })
@@ -651,19 +783,18 @@ export default function CreateBasePrintElement(module, exports, require) {
       target.css("left", this.options.displayLeft());
       target.css("top", printTop + "pt");
       results.push(
-        new _dto_PaperHtmlResult__WEBPACK_IMPORTED_MODULE_3__.a({
+        new require_PaperHtmlResult.a({
           target: target,
           printLine: printTop + this.options.getHeight(),
-          referenceElement:
-            new _PrintReferenceElement__WEBPACK_IMPORTED_MODULE_5__.a({
-              top: this.options.getTop(),
-              left: this.options.getLeft(),
-              height: this.options.getHeight(),
-              width: this.options.getWidth(),
-              beginPrintPaperIndex: designPaper.index,
-              bottomInLastPaper: printTop + this.options.getHeight(),
-              printTopInPaper: printTop,
-            }),
+          referenceElement: new require_PrintReferenceElement.a({
+            top: this.options.getTop(),
+            left: this.options.getLeft(),
+            height: this.options.getHeight(),
+            width: this.options.getWidth(),
+            beginPrintPaperIndex: designPaper.index,
+            bottomInLastPaper: printTop + this.options.getHeight(),
+            printTopInPaper: printTop,
+          }),
         })
       );
       if (templateData && this.options.pageBreak) {
@@ -676,25 +807,29 @@ export default function CreateBasePrintElement(module, exports, require) {
         results[0].referenceElement.bottomInLastPaper = 0;
         results[0].referenceElement.printTopInPaper = designPaper.paperHeader;
         results.unshift(
-          new _dto_PaperHtmlResult__WEBPACK_IMPORTED_MODULE_3__.a({
+          new require_PaperHtmlResult.a({
             target: target,
             printLine: designPaper.height,
-            referenceElement:
-              new _PrintReferenceElement__WEBPACK_IMPORTED_MODULE_5__.a({
-                top: 0,
-                left: 0,
-                height: 0,
-                width: 0,
-                beginPrintPaperIndex: designPaper.index,
-                bottomInLastPaper: designPaper.height,
-                printTopInPaper: designPaper.paperHeader,
-              }),
+            referenceElement: new require_PrintReferenceElement.a({
+              top: 0,
+              left: 0,
+              height: 0,
+              width: 0,
+              beginPrintPaperIndex: designPaper.index,
+              bottomInLastPaper: designPaper.height,
+              printTopInPaper: designPaper.paperHeader,
+            }),
           })
         );
       }
       return results;
     }
 
+    /**
+     * 更新面板高度
+     * @param {number} height - 高度
+     * @param {object} designPaper - 设计纸张对象
+     */
     updatePanelHeight(height, designPaper) {
       if (this.panel.panelPageRule === "none") {
         const newHeightMm = hinnn.pt.toMm(height);
@@ -704,6 +839,11 @@ export default function CreateBasePrintElement(module, exports, require) {
       }
     }
 
+    /**
+     * 根据参考元素获取打印起始位置
+     * @param {object} designPaper - 设计纸张对象
+     * @returns {number} 打印起始位置
+     */
     getBeginPrintTopInPaperByReferenceElement(designPaper) {
       const top = this.options.getTop();
       return this.isHeaderOrFooter() || this.isFixed()
@@ -717,6 +857,11 @@ export default function CreateBasePrintElement(module, exports, require) {
               designPaper.referenceElement.height));
     }
 
+    /**
+     * 设置元素样式
+     * @param {object} target - 目标元素
+     * @param {object} data - 数据对象
+     */
     css(target, data) {
       const self = this;
       const cssRules = [];
@@ -734,10 +879,9 @@ export default function CreateBasePrintElement(module, exports, require) {
         }
         if (options) {
           options.forEach(function (option) {
-            const optionItem =
-              _print_element_option_PrintElementOptionItemManager__WEBPACK_IMPORTED_MODULE_2__.a.getItem(
-                option.name
-              );
+            const optionItem = require_PrintElementOptionItemManager.a.getItem(
+              option.name
+            );
             if (optionItem && optionItem.css) {
               const cssRule = optionItem.css(
                 target,
@@ -752,6 +896,11 @@ export default function CreateBasePrintElement(module, exports, require) {
       this.stylerCss(target, data);
     }
 
+    /**
+     * 设置自定义样式
+     * @param {object} target - 目标元素
+     * @param {object} data - 数据对象
+     */
     stylerCss(target, data) {
       const styler = this.getStyler();
 
@@ -770,6 +919,11 @@ export default function CreateBasePrintElement(module, exports, require) {
       }
     }
 
+    /**
+     * 获取数据
+     * @param {object} templateData - 模板数据
+     * @returns {*} 数据值
+     */
     getData(templateData) {
       const field = this.getField();
       return templateData
@@ -785,6 +939,10 @@ export default function CreateBasePrintElement(module, exports, require) {
         : this.printElementType.getData();
     }
 
+    /**
+     * 从类型复制属性
+     * @returns {object} 选项对象
+     */
     copyFromType() {
       const options = this.options;
       const type = this.printElementType;
@@ -810,6 +968,10 @@ export default function CreateBasePrintElement(module, exports, require) {
       return options;
     }
 
+    /**
+     * 获取打印元素选项标签页
+     * @returns {array} 选项标签页数组
+     */
     getPrintElementOptionTabs() {
       if (this._printElementOptionTabs) return this._printElementOptionTabs;
       const tabs = [];
@@ -825,9 +987,7 @@ export default function CreateBasePrintElement(module, exports, require) {
               })
               .forEach(function (option) {
                 const optionItem =
-                  _print_element_option_PrintElementOptionItemManager__WEBPACK_IMPORTED_MODULE_2__.a.getItem(
-                    option.name
-                  );
+                  require_PrintElementOptionItemManager.a.getItem(option.name);
                 tabs[index].list.push(optionItem);
               });
           });
@@ -838,6 +998,10 @@ export default function CreateBasePrintElement(module, exports, require) {
       return this._printElementOptionTabs;
     }
 
+    /**
+     * 获取打印元素选项列表
+     * @returns {array} 选项列表数组
+     */
     getPrintElementOptionItems() {
       if (this._printElementOptionItems) return this._printElementOptionItems;
       const items = [];
@@ -860,9 +1024,7 @@ export default function CreateBasePrintElement(module, exports, require) {
             })
             .forEach(function (option) {
               const optionItem =
-                _print_element_option_PrintElementOptionItemManager__WEBPACK_IMPORTED_MODULE_2__.a.getItem(
-                  option.name
-                );
+                require_PrintElementOptionItemManager.a.getItem(option.name);
               items.push(optionItem);
             });
         }
@@ -873,6 +1035,11 @@ export default function CreateBasePrintElement(module, exports, require) {
       return this._printElementOptionItems;
     }
 
+    /**
+     * 根据名称获取打印元素选项列表
+     * @param {string} name - 选项名称
+     * @returns {array} 选项列表数组
+     */
     getPrintElementOptionItemsByName(name) {
       const items = [];
       const configOptions = this.getConfigOptionsByName(name);
@@ -894,9 +1061,7 @@ export default function CreateBasePrintElement(module, exports, require) {
             })
             .forEach(function (option) {
               const optionItem =
-                _print_element_option_PrintElementOptionItemManager__WEBPACK_IMPORTED_MODULE_2__.a.getItem(
-                  option.name
-                );
+                require_PrintElementOptionItemManager.a.getItem(option.name);
               items.push(optionItem);
             });
         }
@@ -905,6 +1070,11 @@ export default function CreateBasePrintElement(module, exports, require) {
       return items.concat();
     }
 
+    /**
+     * 过滤选项列表
+     * @param {array} items - 选项列表
+     * @returns {array} 过滤后的选项列表
+     */
     filterOptionItems(items) {
       return this.printElementType.field
         ? items.filter(function (item) {
@@ -913,6 +1083,9 @@ export default function CreateBasePrintElement(module, exports, require) {
         : items;
     }
 
+    /**
+     * 创建临时容器
+     */
     createTempContainer() {
       this.removeTempContainer();
       $("body").append(
@@ -922,14 +1095,25 @@ export default function CreateBasePrintElement(module, exports, require) {
       );
     }
 
+    /**
+     * 移除临时容器
+     */
     removeTempContainer() {
       $(".hiprint_temp_Container").remove();
     }
 
+    /**
+     * 获取临时容器
+     * @returns {object} 临时容器jQuery对象
+     */
     getTempContainer() {
       return $(".hiprint_temp_Container");
     }
 
+    /**
+     * 判断是否为页眉或页脚
+     * @returns {boolean} 是否为页眉或页脚
+     */
     isHeaderOrFooter() {
       return (
         this.options.getTopInDesign() < this.panel.paperHeader ||
@@ -937,18 +1121,34 @@ export default function CreateBasePrintElement(module, exports, require) {
       );
     }
 
+    /**
+     * 删除元素
+     */
     delete() {
       if (this.designTarget) this.designTarget.remove();
     }
 
+    /**
+     * 设置当前模板数据
+     * @param {object} templateData - 模板数据
+     */
     setCurrenttemplateData(templateData) {
       this._currenttemplateData = templateData;
     }
 
+    /**
+     * 判断是否为固定元素
+     * @returns {boolean} 是否为固定元素
+     */
     isFixed() {
       return this.options.fixed;
     }
 
+    /**
+     * 元素渲染完成回调
+     * @param {object} target - 目标元素
+     * @param {object} event - 事件对象
+     */
     onRendered(target, event) {
       if (this.printElementType && this.printElementType.onRendered) {
         this.printElementType.onRendered(
@@ -959,6 +1159,10 @@ export default function CreateBasePrintElement(module, exports, require) {
       }
     }
 
+    /**
+     * 创建元素位置参考线
+     * @param {object} designPaper - 设计纸张对象
+     */
     createLineOfPosition(designPaper) {
       const topLine = $(".toplineOfPosition.id" + this.id);
       const topPosition = $(".topPosition.id" + this.id);
@@ -966,7 +1170,7 @@ export default function CreateBasePrintElement(module, exports, require) {
       const leftPosition = $(".leftPosition.id" + this.id);
       const rightLine = $(".rightlineOfPosition.id" + this.id);
       const bottomLine = $(".bottomlineOfPosition.id" + this.id);
-      const config = _HiPrintConfig__WEBPACK_IMPORTED_MODULE_1__.a.instance;
+      const config = require_HiPrintConfig.a.instance;
       if (topLine.length) {
         topLine.css("top", this.options.displayTop(true));
       } else {
@@ -1145,6 +1349,9 @@ export default function CreateBasePrintElement(module, exports, require) {
       }
     }
 
+    /**
+     * 移除元素位置参考线
+     */
     removeLineOfPosition() {
       $(".toplineOfPosition.id" + this.id).remove();
       $(".topPosition.id" + this.id).remove();
@@ -1157,39 +1364,55 @@ export default function CreateBasePrintElement(module, exports, require) {
       $(".bottomlineOfPosition.id" + this.id).remove();
     }
 
+    /**
+     * 获取字体列表
+     * @returns {array} 字体列表
+     */
     getFontList() {
       let fontList = this.options.fontList;
       if (!fontList) {
-        fontList = _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance
+        fontList = require_HiPrintlib.a.instance
           .getPrintTemplateById(this.templateId)
           .getFontList();
       }
       return fontList;
     }
 
+    /**
+     * 获取字段列表
+     * @returns {array} 字段列表
+     */
     getFields() {
       if (this.printElementType.type === "table") {
         return this.options.tableFields;
       }
       let fields = this.options.fields;
       if (!fields) {
-        fields = _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance
+        fields = require_HiPrintlib.a.instance
           .getPrintTemplateById(this.templateId)
           .getFields();
       }
       return fields;
     }
 
+    /**
+     * 获取图片选择点击事件
+     * @returns {function} 图片选择点击事件处理函数
+     */
     getOnImageChooseClick() {
       let onImageChooseClick = this.options.onImageChooseClick;
       if (!onImageChooseClick) {
-        onImageChooseClick = _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance
+        onImageChooseClick = require_HiPrintlib.a.instance
           .getPrintTemplateById(this.templateId)
           .getOnImageChooseClick();
       }
       return onImageChooseClick;
     }
 
+    /**
+     * 绑定复制事件
+     * @param {object} target - 目标元素
+     */
     bindCopyEvent(target) {
       const self = this;
       target.keydown(function (event) {
@@ -1206,6 +1429,9 @@ export default function CreateBasePrintElement(module, exports, require) {
       });
     }
 
+    /**
+     * 复制元素JSON数据
+     */
     copyJson() {
       try {
         const self = this;
@@ -1248,6 +1474,11 @@ export default function CreateBasePrintElement(module, exports, require) {
       }
     }
 
+    /**
+     * 克隆元素
+     * @param {boolean} isNew - 是否新建
+     * @returns {object} 克隆的元素对象
+     */
     clone(isNew) {
       const self = this;
       const newElement = self.printElementType.createPrintElement();
@@ -1257,6 +1488,10 @@ export default function CreateBasePrintElement(module, exports, require) {
       return newElement;
     }
 
+    /**
+     * 获取格式化函数
+     * @returns {function} 格式化函数
+     */
     getFormatter() {
       let formatter;
       if (this.printElementType.formatter) {
@@ -1273,6 +1508,10 @@ export default function CreateBasePrintElement(module, exports, require) {
       return formatter;
     }
 
+    /**
+     * 获取样式处理函数
+     * @returns {function} 样式处理函数
+     */
     getStyler() {
       let stylerFunction;
       if (this.printElementType.styler) {
@@ -1289,6 +1528,11 @@ export default function CreateBasePrintElement(module, exports, require) {
       return stylerFunction;
     }
 
+    /**
+     * 绑定键盘移动事件
+     * @param {object} target - 目标元素
+     * @param {object} event - 事件对象
+     */
     bindKeyboardMoveEvent(target, event) {
       const self = this;
       let left;
@@ -1311,15 +1555,13 @@ export default function CreateBasePrintElement(module, exports, require) {
           );
         });
         const isMultiple = elements.length > 1;
-        const movingDistance =
-          _HiPrintConfig__WEBPACK_IMPORTED_MODULE_1__.a.instance.movingDistance;
+        const movingDistance = require_HiPrintConfig.a.instance.movingDistance;
         switch (keyEvent.keyCode) {
           case 8:
           case 46:
-            const template =
-              _HiPrintlib__WEBPACK_IMPORTED_MODULE_6__.a.instance.getPrintTemplateById(
-                self.templateId
-              );
+            const template = require_HiPrintlib.a.instance.getPrintTemplateById(
+              self.templateId
+            );
             template.deletePrintElement(self);
             hinnn.event.trigger(
               "hiprintTemplateDataChanged_" + self.templateId,
@@ -1392,6 +1634,11 @@ export default function CreateBasePrintElement(module, exports, require) {
       });
     }
 
+    /**
+     * 判断元素是否在指定区域内
+     * @param {object} event - 事件对象
+     * @returns {boolean} 是否在区域内
+     */
     inRect(event) {
       const scale = this.designPaper.scale || 1;
       const x1 = this.designTarget[0].offsetLeft;
@@ -1409,6 +1656,10 @@ export default function CreateBasePrintElement(module, exports, require) {
       return ex1 < x2 && ex2 > x1 && y1 < ey2 && y2 > ey1;
     }
 
+    /**
+     * 多选状态设置
+     * @param {boolean} isSelected - 是否选中
+     */
     multipleSelect(isSelected) {
       if (isSelected) {
         this.designTarget.addClass("multipleSelect");
@@ -1417,6 +1668,11 @@ export default function CreateBasePrintElement(module, exports, require) {
       }
     }
 
+    /**
+     * 多选状态下更新元素位置
+     * @param {number} deltaX - X轴位移
+     * @param {number} deltaY - Y轴位移
+     */
     updatePositionByMultipleSelect(deltaX, deltaY) {
       if (this.options.draggable === false) return;
       this.updateSizeAndPositionOptions(
