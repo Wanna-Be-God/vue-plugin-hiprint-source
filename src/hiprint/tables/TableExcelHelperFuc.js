@@ -1,85 +1,100 @@
 import { i18n } from "../i18n/i18n";
 
-function TableExcelHelperFuc(module, exports, require) {
+function TableExcelHelperFunction(module, exports, require) {
   "use strict";
 
   require.d(exports, "a", function () {
     return TableExcelHelper;
   });
 
-  var _ReconsitutionTableColumns__WEBPACK_IMPORTED_MODULE_0__ = require(19),
-    _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_1__ = require(0);
+  var ReconsitutionTableColumns = require(19),
+    AssetsPluginsHinnn = require(0);
 
   class TableExcelHelper {
-    static createTableHead(t, e) {
-      const n = TableExcelHelper.reconsitutionTableColumnTree(t);
-      const i = $("<thead></thead>");
-      let colgroup = $("<colgroup></colgroup>");
-      const o = TableExcelHelper.getColumnsWidth(n, e);
+    static createTableHead(tableData, options) {
+      const columnTree =
+        TableExcelHelper.reconsitutionTableColumnTree(tableData);
+      const theadElement = $("<thead></thead>");
+      let colgroupElement = $("<colgroup></colgroup>");
+      const columnsWidth = TableExcelHelper.getColumnsWidth(
+        columnTree,
+        options
+      );
 
-      const r = function (t) {
-        const e = $("<tr></tr>");
-        colgroup = $("<colgroup></colgroup>");
-        n[t]
-          .filter((t) => t.checked)
-          .forEach((t) => {
-            const n = $("<td></td>");
-            t.id && n.attr("id", t.id);
-            t.columnId && n.attr("column-id", t.columnId);
-            (t.align || t.halign) && n.css("text-align", t.halign || t.align);
-            t.vAlign && n.css("vertical-align", t.vAlign);
-            t.colspan > 1 && n.attr("colspan", t.colspan);
-            t.rowspan > 1 && n.attr("rowspan", t.rowspan);
-            n.html(t.title);
-            if (o[t.id]) {
-              t.hasWidth = true;
-              t.targetWidth = o[t.id];
-              n.attr("haswidth", "haswidth");
-              n.css("width", o[t.id] + "pt");
+      const createRow = function (layerIndex) {
+        const rowElement = $("<tr></tr>");
+        colgroupElement = $("<colgroup></colgroup>");
+        columnTree[layerIndex]
+          .filter((column) => column.checked)
+          .forEach((column) => {
+            const cellElement = $("<td></td>");
+            column.id && cellElement.attr("id", column.id);
+            column.columnId && cellElement.attr("column-id", column.columnId);
+            (column.align || column.halign) &&
+              cellElement.css("text-align", column.halign || column.align);
+            column.vAlign && cellElement.css("vertical-align", column.vAlign);
+            column.colspan > 1 && cellElement.attr("colspan", column.colspan);
+            column.rowspan > 1 && cellElement.attr("rowspan", column.rowspan);
+            cellElement.html(column.title);
+            if (columnsWidth[column.id]) {
+              column.hasWidth = true;
+              column.targetWidth = columnsWidth[column.id];
+              cellElement.attr("haswidth", "haswidth");
+              cellElement.css("width", columnsWidth[column.id] + "pt");
             } else {
-              t.hasWidth = false;
+              column.hasWidth = false;
             }
-            const s = TableExcelHelper.getHeaderStyler(t);
-            if (s) {
-              const l = s(t);
-              if (l) {
-                Object.keys(l).forEach((t) => {
-                  n.css(t, l[t]);
+            const headerStyler = TableExcelHelper.getHeaderStyler(column);
+            if (headerStyler) {
+              const styles = headerStyler(column);
+              if (styles) {
+                Object.keys(styles).forEach((styleKey) => {
+                  cellElement.css(styleKey, styles[styleKey]);
                 });
               }
             }
-            e.append(n);
-            colgroup.append(
-              `<col column-id="${t.columnId}" width="${t.width}pt"></col>`
+            rowElement.append(cellElement);
+            colgroupElement.append(
+              `<col column-id="${column.columnId}" width="${column.width}pt"></col>`
             );
           });
-        i.append(e);
+        theadElement.append(rowElement);
       };
 
-      for (let a = 0; a < n.totalLayer; a++) {
-        r(a);
+      for (let layer = 0; layer < columnTree.totalLayer; layer++) {
+        createRow(layer);
       }
-      TableExcelHelper.syncTargetWidthToOption(t);
-      return [i, colgroup];
+      TableExcelHelper.syncTargetWidthToOption(tableData);
+      return [theadElement, colgroupElement];
     }
 
-    static createTableFooter(t, e, n, i, o, r, pageIndex) {
-      const a = $("<tfoot></tfoot>");
-      const p = this.getFooterFormatter(n, i);
-      const tst = this.tableSummaryTitle;
-      let tSumData = n.tableFooterRepeat == "last" ? e : r;
-      let idx = n.columns.length - 1;
-      const rowColumns = this.rowColumns || n.columns[idx].columns;
+    static createTableFooter(
+      tableData,
+      footerData,
+      options,
+      i18nOptions,
+      otherOptions,
+      repeatData,
+      pageIndex
+    ) {
+      const tfootElement = $("<tfoot></tfoot>");
+      const footerFormatter = this.getFooterFormatter(options, i18nOptions);
+      const summaryTitle = this.tableSummaryTitle;
+      let summaryData =
+        options.tableFooterRepeat == "last" ? footerData : repeatData;
+      let lastColumnIndex = options.columns.length - 1;
+      const rowColumns =
+        this.rowColumns || options.columns[lastColumnIndex].columns;
 
       if (
-        n.tableFooterRepeat != "no" &&
+        options.tableFooterRepeat != "no" &&
         rowColumns.some((column) => column.tableSummary)
       ) {
-        const tableFooter = $("<tr></tr>");
+        const tableFooterRow = $("<tr></tr>");
         rowColumns
-          .filter((t) => t.checked)
+          .filter((column) => column.checked)
           .forEach((column) => {
-            const fieldData = tSumData
+            const fieldData = summaryData
               .filter((row) => row && row[column.field])
               .map((row) =>
                 new RegExp("^-?(0|[1-9]\\d*)(\\.\\d+)?").test(row[column.field])
@@ -87,32 +102,36 @@ function TableExcelHelperFuc(module, exports, require) {
                   : 0
               );
             const text = column.tableSummaryText;
-            const numF = column.tableSummaryNumFormat || 2;
+            const numFormat = column.tableSummaryNumFormat || 2;
             const style = `text-align: ${column.tableSummaryAlign || "center"}`;
             const colspan =
               column.tableSummaryColspan == void 0
                 ? 1
                 : column.tableSummaryColspan;
             const upperCaseType = column.upperCase;
-            const { toUpperCase, numFormat } =
-              _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_1__.a;
+            const { toUpperCase, numFormat: formatNumber } =
+              AssetsPluginsHinnn.a;
             const tableSummaryFormatter =
               TableExcelHelper.getColumnTableSummaryFormatter(column);
             const formatterResult = tableSummaryFormatter
-              ? tableSummaryFormatter(column, fieldData, e, n)
+              ? tableSummaryFormatter(column, fieldData, footerData, options)
               : "";
             if (formatterResult) {
-              tableFooter.append(formatterResult);
+              tableFooterRow.append(formatterResult);
               return;
             }
             switch (column.tableSummary) {
               case "count":
-                const title = tst(column, text || `${i18n.__("计数")}:`, o);
+                const title = summaryTitle(
+                  column,
+                  text || `${i18n.__("计数")}:`,
+                  otherOptions
+                );
                 const count = toUpperCase(
                   upperCaseType,
-                  tSumData.filter((i) => i).length || 0
+                  summaryData.filter((i) => i).length || 0
                 );
-                tableFooter.append(
+                tableFooterRow.append(
                   `<td style="${style}" colspan="${colspan}">${title}${count}</td>`
                 );
                 break;
@@ -120,9 +139,13 @@ function TableExcelHelperFuc(module, exports, require) {
                 let sum = parseFloat(
                   Number(fieldData.reduce((prev, cur) => prev + cur, 0))
                 );
-                sum = toUpperCase(upperCaseType, numFormat(sum, numF));
-                const sumTitle = tst(column, text || `${i18n.__("合计")}:`, o);
-                tableFooter.append(
+                sum = toUpperCase(upperCaseType, formatNumber(sum, numFormat));
+                const sumTitle = summaryTitle(
+                  column,
+                  text || `${i18n.__("合计")}:`,
+                  otherOptions
+                );
+                tableFooterRow.append(
                   `<td style="${style}" colspan="${colspan}">${sumTitle}${sum}</td>`
                 );
                 break;
@@ -133,14 +156,14 @@ function TableExcelHelperFuc(module, exports, require) {
                 const avg = parseFloat(Number(sum / (fieldData.length || 1)));
                 const avgFormatted = toUpperCase(
                   upperCaseType,
-                  numFormat(avg, numF)
+                  formatNumber(avg, numFormat)
                 );
-                const avgTitle = tst(
+                const avgTitle = summaryTitle(
                   column,
                   text || `${i18n.__("平均值")}:`,
-                  o
+                  otherOptions
                 );
-                tableFooter.append(
+                tableFooterRow.append(
                   `<td style="${style}" colspan="${colspan}">${avgTitle}${avgFormatted}</td>`
                 );
                 break;
@@ -149,14 +172,14 @@ function TableExcelHelperFuc(module, exports, require) {
                 min == Infinity && (min = 0);
                 const minFormatted = toUpperCase(
                   upperCaseType,
-                  numFormat(min, numF)
+                  formatNumber(min, numFormat)
                 );
-                const minTitle = tst(
+                const minTitle = summaryTitle(
                   column,
                   text || `${i18n.__("最小值")}:`,
-                  o
+                  otherOptions
                 );
-                tableFooter.append(
+                tableFooterRow.append(
                   `<td style="${style}" colspan="${colspan}">${minTitle}${
                     min || 0
                   }</td>`
@@ -167,27 +190,27 @@ function TableExcelHelperFuc(module, exports, require) {
                 max == -Infinity && (max = 0);
                 const maxFormatted = toUpperCase(
                   upperCaseType,
-                  numFormat(max, numF)
+                  formatNumber(max, numFormat)
                 );
-                const maxTitle = tst(
+                const maxTitle = summaryTitle(
                   column,
                   text || `${i18n.__("最大值")}:`,
-                  o
+                  otherOptions
                 );
-                tableFooter.append(
+                tableFooterRow.append(
                   `<td style="${style}" colspan="${colspan}">${maxTitle}${
                     max || 0
                   }</td>`
                 );
                 break;
               case "text":
-                tableFooter.append(
+                tableFooterRow.append(
                   `<td style="${style}" colspan="${colspan}">${text || ""}</td>`
                 );
                 break;
               default:
                 if (colspan >= 1) {
-                  tableFooter.append(
+                  tableFooterRow.append(
                     `<td style="${style}" colspan="${colspan}">${
                       text || ""
                     }</td>`
@@ -196,127 +219,163 @@ function TableExcelHelperFuc(module, exports, require) {
                 break;
             }
           });
-        a.append(tableFooter);
+        tfootElement.append(tableFooterRow);
       }
-      if (p) {
-        a.append(p(n, e, o, r, pageIndex));
+      if (footerFormatter) {
+        tfootElement.append(
+          footerFormatter(
+            options,
+            footerData,
+            otherOptions,
+            repeatData,
+            pageIndex
+          )
+        );
       }
-      return a;
+      return tfootElement;
     }
 
     static tableSummaryTitle(column, title, data) {
-      const s =
+      const showTitle =
         column.tableSummaryTitle == undefined ||
         column.tableSummaryTitle == true;
-      return s
+      return showTitle
         ? `${title}`
         : data
         ? ``
         : `<span style="color:firebrick">${title}</span>`;
     }
 
-    static createTableRow(t, e, printData, n, i) {
-      const h = this;
-      const o = TableExcelHelper.reconsitutionTableColumnTree(t);
-      const r = $("<tbody></tbody>");
-      const gff = h.getGroupFieldsFormatter(n, i);
+    static createTableRow(tableData, rowData, printData, options, i18nOptions) {
+      const helper = this;
+      const columnTree =
+        TableExcelHelper.reconsitutionTableColumnTree(tableData);
+      const tbodyElement = $("<tbody></tbody>");
+      const groupFieldsFormatter = helper.getGroupFieldsFormatter(
+        options,
+        i18nOptions
+      );
       let groupRowIndex = 0;
-      const groupFields = gff
-        ? (n.groupFields = gff(i, n, e))
-        : i.groupFields
-        ? i.groupFields
+      const groupFields = groupFieldsFormatter
+        ? (options.groupFields = groupFieldsFormatter(
+            i18nOptions,
+            options,
+            rowData
+          ))
+        : i18nOptions.groupFields
+        ? i18nOptions.groupFields
         : [];
-      (e || (e = []), groupFields.length)
-        ? _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_1__.a
-            .groupBy(e, groupFields, (t) => {
-              const e = {};
-              groupFields.forEach((n) => (e[n] = t[n]));
-              return e;
+      (rowData || (rowData = []), groupFields.length)
+        ? AssetsPluginsHinnn.a
+            .groupBy(rowData, groupFields, (row) => {
+              const groupData = {};
+              groupFields.forEach((field) => (groupData[field] = row[field]));
+              return groupData;
             })
-            .forEach((t) => {
-              const groupFormatter = h.getGroupFormatter(n, i);
+            .forEach((group) => {
+              const groupFormatter = helper.getGroupFormatter(
+                options,
+                i18nOptions
+              );
               if (groupFormatter) {
-                let result = groupFormatter(o.colspan, e, printData, t, n);
+                let result = groupFormatter(
+                  columnTree.colspan,
+                  rowData,
+                  printData,
+                  group,
+                  options
+                );
                 if ($(result).is("tr")) {
-                  r.append(result);
+                  tbodyElement.append(result);
                 } else if ($(result).is("td")) {
-                  r.append(`<tr>${result}</tr>`);
+                  tbodyElement.append(`<tr>${result}</tr>`);
                 } else {
-                  r.append(`<tr><td>${result}</td></tr>`);
+                  tbodyElement.append(`<tr><td>${result}</td></tr>`);
                 }
               }
-              const groupFooterFormatter = h.getGroupFooterFormatter(n, i);
-              const groupData = t;
+              const groupFooterFormatter = helper.getGroupFooterFormatter(
+                options,
+                i18nOptions
+              );
+              const groupData = group;
               if (
-                (groupData.rows.forEach((t, rowIndex) => {
-                  let sequenceIndex = n.groupSequenceContinue
+                (groupData.rows.forEach((row, rowIndex) => {
+                  let sequenceIndex = options.groupSequenceContinue
                     ? groupRowIndex
                     : rowIndex;
-                  const e = TableExcelHelper.createRowTarget(
-                    o,
-                    t,
-                    n,
-                    i,
+                  const rowElement = TableExcelHelper.createRowTarget(
+                    columnTree,
+                    row,
+                    options,
+                    i18nOptions,
                     sequenceIndex,
                     groupData.rows,
                     printData
                   );
-                  r.append(e);
+                  tbodyElement.append(rowElement);
                   groupRowIndex += 1;
                 }),
                 groupFooterFormatter)
               ) {
                 let result = groupFooterFormatter(
-                  o.colspan,
-                  e,
+                  columnTree.colspan,
+                  rowData,
                   printData,
-                  t,
-                  n
+                  group,
+                  options
                 );
                 if ($(result).is("tr")) {
-                  r.append(result);
+                  tbodyElement.append(result);
                 } else if ($(result).is("td")) {
-                  r.append(`<tr>${result}</tr>`);
+                  tbodyElement.append(`<tr>${result}</tr>`);
                 } else {
-                  r.append(`<tr><td>${result}</td></tr>`);
+                  tbodyElement.append(`<tr><td>${result}</td></tr>`);
                 }
               }
             })
-        : e.forEach((t, rowIndex) => {
-            const row = TableExcelHelper.createRowTarget(
-              o,
-              t,
-              n,
-              i,
+        : rowData.forEach((row, rowIndex) => {
+            const rowElement = TableExcelHelper.createRowTarget(
+              columnTree,
+              row,
+              options,
+              i18nOptions,
               rowIndex,
-              e,
+              rowData,
               printData
             );
-            r.append(row);
+            tbodyElement.append(rowElement);
           });
-      return r;
+      return tbodyElement;
     }
 
-    static createRowTarget(t, e, n, i, rowIndex, tableData, printData) {
-      const o = $("<tr></tr>");
-      const columns = t.rowColumns.filter((t) => t.checked);
-      o.data("rowData", e);
-      t.rowColumns
-        .filter((t) => t.checked)
-        .forEach((t, i) => {
-          if (!t.checked) return;
+    static createRowTarget(
+      columnTree,
+      rowData,
+      options,
+      i18nOptions,
+      rowIndex,
+      tableData,
+      printData
+    ) {
+      const rowElement = $("<tr></tr>");
+      const columns = columnTree.rowColumns.filter((column) => column.checked);
+      rowElement.data("rowData", rowData);
+      columnTree.rowColumns
+        .filter((column) => column.checked)
+        .forEach((column, columnIndex) => {
+          if (!column.checked) return;
           let rowsColumnsMerge = "";
-          if (n.rowsColumnsMerge) {
-            eval("rowsColumnsMerge=" + n.rowsColumnsMerge);
+          if (options.rowsColumnsMerge) {
+            eval("rowsColumnsMerge=" + options.rowsColumnsMerge);
             const rowsColumnsArr = rowsColumnsMerge(
-              e,
-              t,
-              i,
+              rowData,
+              column,
+              columnIndex,
               rowIndex,
               tableData,
               printData
             ) || [1, 1];
-            var r = $(
+            var cellElement = $(
               `<td style = 'display:${
                 !(rowsColumnsArr[0] && rowsColumnsArr[1]) ? "none" : ""
               }' rowspan = '${rowsColumnsArr[0]}' colspan = '${
@@ -324,243 +383,299 @@ function TableExcelHelperFuc(module, exports, require) {
               }'></td>`
             );
           } else {
-            var r = $("<td></td>");
+            var cellElement = $("<td></td>");
           }
           if (
-            e &&
-            Object.keys(e).length > 0 &&
-            ("first" == n.tableHeaderRepeat || "none" == n.tableHeaderRepeat)
+            rowData &&
+            Object.keys(rowData).length > 0 &&
+            ("first" == options.tableHeaderRepeat ||
+              "none" == options.tableHeaderRepeat)
           ) {
-            t.field && r.attr("field", t.field);
-            t.align && r.css("text-align", t.align);
-            t.vAlign && r.css("vertical-align", t.vAlign);
-            if (n.rowsColumnsMerge) {
+            column.field && cellElement.attr("field", column.field);
+            column.align && cellElement.css("text-align", column.align);
+            column.vAlign && cellElement.css("vertical-align", column.vAlign);
+            if (options.rowsColumnsMerge) {
               if (rowsColumnsArr[1] > 1) {
                 let width = 0;
                 columns.forEach((item, index) => {
-                  if (index >= i && index < i + rowsColumnsArr[1]) {
+                  if (
+                    index >= columnIndex &&
+                    index < columnIndex + rowsColumnsArr[1]
+                  ) {
                     width += item.width;
                   }
                 });
               }
             }
-            r.css("width", (width || t.width) + "pt");
+            cellElement.css("width", (width || column.width) + "pt");
           } else {
-            t.field && r.attr("field", t.field);
-            t.align && r.css("text-align", t.align);
-            t.vAlign && r.css("vertical-align", t.vAlign);
+            column.field && cellElement.attr("field", column.field);
+            column.align && cellElement.css("text-align", column.align);
+            column.vAlign && cellElement.css("vertical-align", column.vAlign);
           }
-          const a = TableExcelHelper.getColumnFormatter(t);
-          const p = a ? a(e[t.field], e, i, n) : e[t.field];
-          const rf = TableExcelHelper.getColumnRenderFormatter(t);
-          if (rf) {
-            r.html(rf(e[t.field], e, i, n, rowIndex));
-          } else if ("text" == t.tableTextType || t.tableTextType == void 0) {
-            r.html(p);
+          const columnFormatter = TableExcelHelper.getColumnFormatter(column);
+          const formattedValue = columnFormatter
+            ? columnFormatter(
+                rowData[column.field],
+                rowData,
+                columnIndex,
+                options
+              )
+            : rowData[column.field];
+          const renderFormatter =
+            TableExcelHelper.getColumnRenderFormatter(column);
+          if (renderFormatter) {
+            cellElement.html(
+              renderFormatter(
+                rowData[column.field],
+                rowData,
+                columnIndex,
+                options,
+                rowIndex
+              )
+            );
+          } else if (
+            "text" == column.tableTextType ||
+            column.tableTextType == void 0
+          ) {
+            cellElement.html(formattedValue);
           } else {
-            if ("barcode" == t.tableTextType) {
-              r.html(
+            if ("barcode" == column.tableTextType) {
+              cellElement.html(
                 '<svg width="100%" display="block" height="100%" class="hibarcode_imgcode" preserveAspectRatio="none slice"></svg ><div class="hibarcode_displayValue"></div>'
               );
               try {
-                p
-                  ? (JsBarcode(r.find(".hibarcode_imgcode")[0], p, {
-                      format: t.tableBarcodeMode || "CODE128A",
-                      width: 1,
-                      textMargin: -1,
-                      lineColor: "#000000",
-                      margin: 0,
-                      height: parseInt(10),
-                      displayValue: !1,
-                    }),
-                    r
+                formattedValue
+                  ? (JsBarcode(
+                      cellElement.find(".hibarcode_imgcode")[0],
+                      formattedValue,
+                      {
+                        format: column.tableBarcodeMode || "CODE128A",
+                        width: 1,
+                        textMargin: -1,
+                        lineColor: "#000000",
+                        margin: 0,
+                        height: parseInt(10),
+                        displayValue: !1,
+                      }
+                    ),
+                    cellElement
                       .find(".hibarcode_imgcode")
-                      .attr("height", t.tableColumnHeight || 30 + "pt"),
-                    r.find(".hibarcode_imgcode").css("margin", "5pt 10pt"),
-                    r
+                      .attr("height", column.tableColumnHeight || 30 + "pt"),
+                    cellElement
+                      .find(".hibarcode_imgcode")
+                      .css("margin", "5pt 10pt"),
+                    cellElement
                       .find(".hibarcode_imgcode")
                       .attr("width", "calc(100% - 20pt)"))
-                  : r.html("");
-                if (t.showCodeTitle) {
-                  r.find(".hibarcode_displayValue").html(p);
+                  : cellElement.html("");
+                if (column.showCodeTitle) {
+                  cellElement
+                    .find(".hibarcode_displayValue")
+                    .html(formattedValue);
                 }
-              } catch (t) {
-                console.log(t);
-                r.html(`${i18n.__("此格式不支持该文本")}`);
+              } catch (error) {
+                console.log(error);
+                cellElement.html(`${i18n.__("此格式不支持该文本")}`);
               }
             }
-            if ("image" == t.tableTextType) {
-              r.html("");
-              if (p) {
-                const imagebox = $(
+            if ("image" == column.tableTextType) {
+              cellElement.html("");
+              if (formattedValue) {
+                const imageBox = $(
                   '<div><img style = "max-width:100%;max-height:100%"/></div>'
                 );
-                imagebox.find("img").attr("src", p);
-                imagebox
+                imageBox.find("img").attr("src", formattedValue);
+                imageBox
                   .find("img")
-                  .attr("height", t.tableColumnHeight || 50 + "pt");
-                r.html(imagebox);
+                  .attr("height", column.tableColumnHeight || 50 + "pt");
+                cellElement.html(imageBox);
               }
             }
-            if ("qrcode" == t.tableTextType) {
-              r.html("");
+            if ("qrcode" == column.tableTextType) {
+              cellElement.html("");
               try {
-                const qrcodebox = $(
+                const qrCodeBox = $(
                   '<div style="margin:2pt 0pt" class="hiqrcode_imgcode"></div>'
                 );
 
-                if (p) {
-                  const l = parseInt(t.width || t.targetWidth || 20);
-                  const u = parseInt(t.tableColumnHeight || 20);
-                  qrcodebox.css("height", (l > u ? u : l) + "pt");
-                  new QRCode(qrcodebox[0], {
-                    width: l > u ? u : l,
-                    height: l > u ? u : l,
+                if (formattedValue) {
+                  const width = parseInt(
+                    column.width || column.targetWidth || 20
+                  );
+                  const height = parseInt(column.tableColumnHeight || 20);
+                  qrCodeBox.css(
+                    "height",
+                    (width > height ? height : width) + "pt"
+                  );
+                  new QRCode(qrCodeBox[0], {
+                    width: width > height ? height : width,
+                    height: width > height ? height : width,
                     colorDark: "#000000",
                     useSVG: !0,
-                    correctLevel: t.tableQRCodeLevel || 0,
-                  }).makeCode(p);
-                  r.html(qrcodebox);
-                  if (t.showCodeTitle) {
-                    r.append('<div class="hiqrcode_displayValue"></div>');
-                    r.find(".hiqrcode_displayValue").html(p);
+                    correctLevel: column.tableQRCodeLevel || 0,
+                  }).makeCode(formattedValue);
+                  cellElement.html(qrCodeBox);
+                  if (column.showCodeTitle) {
+                    cellElement.append(
+                      '<div class="hiqrcode_displayValue"></div>'
+                    );
+                    cellElement
+                      .find(".hiqrcode_displayValue")
+                      .html(formattedValue);
                   }
                 }
-              } catch (t) {
-                console.log(t);
-                r.html(`${i18n.__("二维码生成失败")}`);
+              } catch (error) {
+                console.log(error);
+                cellElement.html(`${i18n.__("二维码生成失败")}`);
               }
             }
-            if ("sequence" === t.tableTextType) {
-              r.html(rowIndex + 1);
+            if ("sequence" === column.tableTextType) {
+              cellElement.html(rowIndex + 1);
             }
           }
-          const s = TableExcelHelper.getColumnStyler(t);
+          const columnStyler = TableExcelHelper.getColumnStyler(column);
 
-          if (s) {
-            const l = s(e[t.field], e, i, n);
-            if (l) {
-              Object.keys(l).forEach((t) => {
-                r.css(t, l[t]);
+          if (columnStyler) {
+            const styles = columnStyler(
+              rowData[column.field],
+              rowData,
+              columnIndex,
+              options
+            );
+            if (styles) {
+              Object.keys(styles).forEach((styleKey) => {
+                cellElement.css(styleKey, styles[styleKey]);
               });
             }
           }
 
-          o.append(r);
+          rowElement.append(cellElement);
         });
-      const r = TableExcelHelper.getRowStyler(n, i);
+      const rowStyler = TableExcelHelper.getRowStyler(options, i18nOptions);
 
-      if (r) {
-        const a = r(e, n);
-        if (a) {
-          Object.keys(a).forEach((t) => {
-            o.css(t, a[t]);
+      if (rowStyler) {
+        const styles = rowStyler(rowData, options);
+        if (styles) {
+          Object.keys(styles).forEach((styleKey) => {
+            rowElement.css(styleKey, styles[styleKey]);
           });
         }
       }
 
-      return o;
+      return rowElement;
     }
 
-    static createEmptyRowTarget(t, tableElement) {
-      const e = TableExcelHelper.reconsitutionTableColumnTree(t);
-      const n = $("<tr></tr>");
-      e.rowColumns
-        .filter((t) => t.checked)
-        .forEach((t, e) => {
-          const i = $("<td></td>");
-          t.field && i.attr("field", t.field);
-          t.align && i.css("text-align", t.align);
-          t.vAlign && i.css("vertical-align", t.vAlign);
-          n.append(i);
+    static createEmptyRowTarget(tableData, tableElement) {
+      const columnTree =
+        TableExcelHelper.reconsitutionTableColumnTree(tableData);
+      const emptyRowElement = $("<tr></tr>");
+      columnTree.rowColumns
+        .filter((column) => column.checked)
+        .forEach((column, columnIndex) => {
+          const cellElement = $("<td></td>");
+          column.field && cellElement.attr("field", column.field);
+          column.align && cellElement.css("text-align", column.align);
+          column.vAlign && cellElement.css("vertical-align", column.vAlign);
+          emptyRowElement.append(cellElement);
         });
       if (tableElement && tableElement.options.tableBodyRowHeight) {
-        n.find("td:not([rowspan])").css(
-          "height",
-          tableElement.options.tableBodyRowHeight + "pt"
-        );
+        emptyRowElement
+          .find("td:not([rowspan])")
+          .css("height", tableElement.options.tableBodyRowHeight + "pt");
       }
-      return n;
+      return emptyRowElement;
     }
 
-    static getColumnsWidth(t, e) {
-      const n = {};
-      const i = TableExcelHelper.allAutoWidth(t);
-      const o = TableExcelHelper.allFixedWidth(t);
-      t.rowColumns
-        .filter((t) => t.checked)
-        .forEach((t) => {
-          if (t.fixed) {
-            n[t.id] = t.width;
+    static getColumnsWidth(columnTree, totalWidth) {
+      const columnWidths = {};
+      const totalAutoWidth = TableExcelHelper.allAutoWidth(columnTree);
+      const totalFixedWidth = TableExcelHelper.allFixedWidth(columnTree);
+      columnTree.rowColumns
+        .filter((column) => column.checked)
+        .forEach((column) => {
+          if (column.fixed) {
+            columnWidths[column.id] = column.width;
           } else {
-            const r = e - o;
-            const a = (t.width / i) * (r > 0 ? r : 0);
-            n[t.id] = a;
+            const remainingWidth = totalWidth - totalFixedWidth;
+            const calculatedWidth =
+              (column.width / totalAutoWidth) *
+              (remainingWidth > 0 ? remainingWidth : 0);
+            columnWidths[column.id] = calculatedWidth;
           }
         });
-      return n;
+      return columnWidths;
     }
 
-    static resizeTableCellWidth(t, e, n) {
-      const i = TableExcelHelper.reconsitutionTableColumnTree(e);
-      const o = TableExcelHelper.getColumnsWidth(i, n);
-      t.find("thead tr td[haswidth]").map((t, e) => {
-        const n = $(e).attr("id");
-        const i = o[n];
-        $(e).css("width", i + "pt");
+    static resizeTableCellWidth(tableElement, tableData, totalWidth) {
+      const columnTree =
+        TableExcelHelper.reconsitutionTableColumnTree(tableData);
+      const columnWidths = TableExcelHelper.getColumnsWidth(
+        columnTree,
+        totalWidth
+      );
+      tableElement.find("thead tr td[haswidth]").map((index, cell) => {
+        const columnId = $(cell).attr("id");
+        const columnWidth = columnWidths[columnId];
+        $(cell).css("width", columnWidth + "pt");
       });
     }
 
-    static allAutoWidth(t) {
-      let e = 0;
-      const n = {};
-      t.rowColumns
-        .filter((t) => t.checked)
-        .forEach((t) => {
-          n[t.id] ? (n[t.id] = 0) : (n[t.id] = t.width);
-          e += t.fixed ? 0 : n[t.id];
+    static allAutoWidth(columnTree) {
+      let totalAutoWidth = 0;
+      const columnWidths = {};
+      columnTree.rowColumns
+        .filter((column) => column.checked)
+        .forEach((column) => {
+          columnWidths[column.id]
+            ? (columnWidths[column.id] = 0)
+            : (columnWidths[column.id] = column.width);
+          totalAutoWidth += column.fixed ? 0 : columnWidths[column.id];
         });
-      return e;
+      return totalAutoWidth;
     }
 
-    static allFixedWidth(t) {
-      let e = 0;
-      const n = {};
-      t.rowColumns
-        .filter((t) => t.checked)
-        .forEach((t) => {
-          n[t.id] ? (n[t.id] = 0) : (n[t.id] = t.width);
-          e += t.fixed ? n[t.id] : 0;
+    static allFixedWidth(columnTree) {
+      let totalFixedWidth = 0;
+      const columnWidths = {};
+      columnTree.rowColumns
+        .filter((column) => column.checked)
+        .forEach((column) => {
+          columnWidths[column.id]
+            ? (columnWidths[column.id] = 0)
+            : (columnWidths[column.id] = column.width);
+          totalFixedWidth += column.fixed ? columnWidths[column.id] : 0;
         });
-      return e;
+      return totalFixedWidth;
     }
 
-    static reconsitutionTableColumnTree(t, e, n) {
-      const i =
-        e || new _ReconsitutionTableColumns__WEBPACK_IMPORTED_MODULE_0__.a();
-      i.colspan = 0;
+    static reconsitutionTableColumnTree(tableData, columnTree, options) {
+      const columnTreeInstance =
+        columnTree || new ReconsitutionTableColumns.a();
+      columnTreeInstance.colspan = 0;
 
-      for (let r = 0; r < t.length; r++) {
-        i.totalLayer = r + 1;
-        i[r] = t[r].columns;
-        if (r == 0) {
-          t[r].columns.forEach((t) => {
-            if (r == 0) {
-              i.colspan += t.colspan;
+      for (let layerIndex = 0; layerIndex < tableData.length; layerIndex++) {
+        columnTreeInstance.totalLayer = layerIndex + 1;
+        columnTreeInstance[layerIndex] = tableData[layerIndex].columns;
+        if (layerIndex == 0) {
+          tableData[layerIndex].columns.forEach((column) => {
+            if (layerIndex == 0) {
+              columnTreeInstance.colspan += column.colspan;
             }
           });
         }
       }
 
-      i.rowColumns = TableExcelHelper.getOrderdColumns(i);
-      return i;
+      columnTreeInstance.rowColumns =
+        TableExcelHelper.getOrderdColumns(columnTreeInstance);
+      return columnTreeInstance;
     }
 
-    static syncTargetWidthToOption(t) {
-      t.forEach((t) => {
-        t.columns.forEach((t) => {
-          if (t.hasWidth) {
-            t.width = t.targetWidth;
+    static syncTargetWidthToOption(tableData) {
+      tableData.forEach((layer) => {
+        layer.columns.forEach((column) => {
+          if (column.hasWidth) {
+            column.width = column.targetWidth;
           }
         });
       });
@@ -572,22 +687,22 @@ function TableExcelHelperFuc(module, exports, require) {
         tablePrintElementType.groupFields &&
         tablePrintElementType.groupFields.length
       ) {
-        const arr =
+        const groupFieldsArray =
           typeof tablePrintElementType.groupFields == "string"
             ? tablePrintElementType.groupFields
             : JSON.stringify(tablePrintElementType.groupFields);
         options.groupFieldsFormatter =
-          "function(type,options,data){ return " + arr + " }";
+          "function(type,options,data){ return " + groupFieldsArray + " }";
       }
       if (tablePrintElementType.groupFieldsFormatter) {
         groupFieldsFormatter = tablePrintElementType.groupFieldsFormatter;
       }
       if (options.groupFieldsFormatter) {
         try {
-          const s = "groupFieldsFormatter=" + options.groupFieldsFormatter;
-          eval(s);
-        } catch (t) {
-          console.log(t);
+          const script = "groupFieldsFormatter=" + options.groupFieldsFormatter;
+          eval(script);
+        } catch (error) {
+          console.log(error);
         }
       }
       return groupFieldsFormatter;
@@ -600,10 +715,10 @@ function TableExcelHelperFuc(module, exports, require) {
       }
       if (options.groupFormatter) {
         try {
-          const s = "groupFormatter=" + options.groupFormatter;
-          eval(s);
-        } catch (t) {
-          console.log(t);
+          const script = "groupFormatter=" + options.groupFormatter;
+          eval(script);
+        } catch (error) {
+          console.log(error);
         }
       }
       return groupFormatter;
@@ -616,10 +731,10 @@ function TableExcelHelperFuc(module, exports, require) {
       }
       if (options.groupFooterFormatter) {
         try {
-          const s = "groupFooterFormatter=" + options.groupFooterFormatter;
-          eval(s);
-        } catch (t) {
-          console.log(t);
+          const script = "groupFooterFormatter=" + options.groupFooterFormatter;
+          eval(script);
+        } catch (error) {
+          console.log(error);
         }
       }
       return groupFooterFormatter;
@@ -632,10 +747,10 @@ function TableExcelHelperFuc(module, exports, require) {
       }
       if (options.footerFormatter) {
         try {
-          const s = "footerFormatter=" + options.footerFormatter;
-          eval(s);
-        } catch (t) {
-          console.log(t);
+          const script = "footerFormatter=" + options.footerFormatter;
+          eval(script);
+        } catch (error) {
+          console.log(error);
         }
       }
       return footerFormatter;
@@ -648,10 +763,10 @@ function TableExcelHelperFuc(module, exports, require) {
       }
       if (options.rowStyler) {
         try {
-          const s = "rowStyler=" + options.rowStyler;
-          eval(s);
-        } catch (t) {
-          console.log(t);
+          const script = "rowStyler=" + options.rowStyler;
+          eval(script);
+        } catch (error) {
+          console.log(error);
         }
       }
       return rowStyler;
@@ -664,10 +779,11 @@ function TableExcelHelperFuc(module, exports, require) {
       }
       if (column.tableSummaryFormatter) {
         try {
-          const s = "tableSummaryFormatter=" + column.tableSummaryFormatter;
-          eval(s);
-        } catch (t) {
-          console.log(t);
+          const script =
+            "tableSummaryFormatter=" + column.tableSummaryFormatter;
+          eval(script);
+        } catch (error) {
+          console.log(error);
         }
       }
       return tableSummaryFormatter;
@@ -680,29 +796,29 @@ function TableExcelHelperFuc(module, exports, require) {
       }
       if (column.styler2) {
         try {
-          const s = "styler=" + column.styler2;
-          eval(s);
-        } catch (t) {
-          console.log(t);
+          const script = "styler=" + column.styler2;
+          eval(script);
+        } catch (error) {
+          console.log(error);
         }
       }
       return styler;
     }
 
     static getHeaderStyler(column) {
-      let stylerHeader;
+      let headerStyler;
       if (column.stylerHeader) {
-        stylerHeader = column.stylerHeader;
+        headerStyler = column.stylerHeader;
       }
       if (column.stylerHeader) {
         try {
-          const s = "stylerHeader=" + column.stylerHeader;
-          eval(s);
-        } catch (t) {
-          console.log(t);
+          const script = "stylerHeader=" + column.stylerHeader;
+          eval(script);
+        } catch (error) {
+          console.log(error);
         }
       }
-      return stylerHeader;
+      return headerStyler;
     }
 
     static getColumnRenderFormatter(column) {
@@ -712,10 +828,10 @@ function TableExcelHelperFuc(module, exports, require) {
       }
       if (column.renderFormatter) {
         try {
-          const s = "renderFormatter=" + column.renderFormatter;
-          eval(s);
-        } catch (t) {
-          console.log(t);
+          const script = "renderFormatter=" + column.renderFormatter;
+          eval(script);
+        } catch (error) {
+          console.log(error);
         }
       }
       return renderFormatter;
@@ -728,29 +844,37 @@ function TableExcelHelperFuc(module, exports, require) {
       }
       if (column.formatter2) {
         try {
-          const s = "formatter=" + column.formatter2;
-          eval(s);
-        } catch (t) {
-          console.log(t);
+          const script = "formatter=" + column.formatter2;
+          eval(script);
+        } catch (error) {
+          console.log(error);
         }
       }
       return formatter;
     }
 
-    static getOrderdColumns(t) {
-      let newColumns = {};
-      for (let i = 0; i < t.totalLayer; i++) {
-        newColumns[i] = [];
-        t[i].forEach((column, columnIdx) => {
-          newColumns[i].push(
+    static getOrderdColumns(columnTree) {
+      let orderedColumns = {};
+      for (
+        let layerIndex = 0;
+        layerIndex < columnTree.totalLayer;
+        layerIndex++
+      ) {
+        orderedColumns[layerIndex] = [];
+        columnTree[layerIndex].forEach((column, columnIndex) => {
+          orderedColumns[layerIndex].push(
             ...new Array(column.colspan).fill({ ...column, colspan: 1 })
           );
         });
       }
-      for (let i = 0; i < t.totalLayer; i++) {
-        newColumns[i].forEach((column, columnIdx) => {
-          for (let n = 1; n < column.rowspan; n++) {
-            newColumns[i + n].splice(columnIdx, 0, {
+      for (
+        let layerIndex = 0;
+        layerIndex < columnTree.totalLayer;
+        layerIndex++
+      ) {
+        orderedColumns[layerIndex].forEach((column, columnIndex) => {
+          for (let rowIndex = 1; rowIndex < column.rowspan; rowIndex++) {
+            orderedColumns[layerIndex + rowIndex].splice(columnIndex, 0, {
               ...column,
               rowspan: 1,
             });
@@ -758,29 +882,33 @@ function TableExcelHelperFuc(module, exports, require) {
         });
       }
       let lastColumns = [];
-      for (let i = 0; i < t.totalLayer; i++) {
-        if (i >= t.totalLayer - 1) {
-          newColumns[i].forEach((column, columnIdx) => {
+      for (
+        let layerIndex = 0;
+        layerIndex < columnTree.totalLayer;
+        layerIndex++
+      ) {
+        if (layerIndex >= columnTree.totalLayer - 1) {
+          orderedColumns[layerIndex].forEach((column, columnIndex) => {
             if (!column.field) {
-              column.field = lastColumns[columnIdx];
+              column.field = lastColumns[columnIndex];
             }
           });
         } else {
-          newColumns[i].forEach((column, columnIdx) => {
-            if (i == 0) {
+          orderedColumns[layerIndex].forEach((column, columnIndex) => {
+            if (layerIndex == 0) {
               lastColumns.push(column.field || "");
             } else {
-              column.field && (lastColumns[columnIdx] = column.field);
+              column.field && (lastColumns[columnIndex] = column.field);
             }
           });
         }
       }
-      this.rowColumns = newColumns[t.totalLayer - 1];
-      return newColumns[t.totalLayer - 1];
+      this.rowColumns = orderedColumns[columnTree.totalLayer - 1];
+      return orderedColumns[columnTree.totalLayer - 1];
     }
   }
 
   // return TableExcelHelper;
 }
 
-export default TableExcelHelperFuc;
+export default TableExcelHelperFunction;
