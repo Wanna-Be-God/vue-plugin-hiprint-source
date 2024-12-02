@@ -1,29 +1,42 @@
+/**
+ * 表示一个矩形区域的类
+ */
 class Rectangle {
   constructor(dimensions) {
-    this.x = dimensions.x;
-    this.y = dimensions.y;
-    this.height = dimensions.height;
-    this.width = dimensions.width;
+    this.x = dimensions.x; // 矩形左上角的 x 坐标
+    this.y = dimensions.y; // 矩形左上角的 y 坐标
+    this.height = dimensions.height; // 矩形的高度
+    this.width = dimensions.width; // 矩形的宽度
   }
 }
 
+/**
+ * 表示选择区域的矩形类
+ */
 class SelectionRectangle {
   constructor(rect) {
-    this.rect = rect;
+    this.rect = rect; // 存储 Rectangle 实例
   }
 }
 
+/**
+ * 表示单元格位置的类
+ */
 class CellPosition {
   constructor(rowIndex, cell) {
-    this.rowIndex = rowIndex;
-    this.cell = cell;
+    this.rowIndex = rowIndex; // 行索引
+    this.cell = cell; // 单元格对象
   }
 }
+
 /**
-SelectCellsByCoordinates 函数的主要功能是通过坐标选择表格中的单元格。它提供了单选和多选的功能。
-该函数包含一个 TableCellSelector 类，负责管理选择的单元格，并提供方法来清除选择、设置单选、获取单选、通过坐标进行单选和多选。
-TableCellSelector 使用 SelectionRectangle 和 CellPosition 类来帮助管理选择区域和单元格位置。
-该函数还依赖于一个 utils 模块，用于合并选择区域的矩形。
+ * @module SelectCellsByCoordinates
+ * @description 通过坐标选择表格中的单元格的功能模块
+ * 主要功能：
+ * 1. 支持单选和多选单元格
+ * 2. 通过坐标(x,y)定位单元格
+ * 3. 管理选中单元格的状态
+ * 4. 提供选区的清除、设置、获取等操作
  */
 export default function SelectCellsByCoordinates(module, exports, require) {
   "use strict";
@@ -37,22 +50,40 @@ export default function SelectCellsByCoordinates(module, exports, require) {
 
   var utils = require(14);
 
+  /**
+   * 表格单元格选择器类
+   */
   class TableCellSelector {
+    /**
+     * @param {Array} rows - 表格的行数据
+     * @param {jQuery} tableTarget - 表格的 jQuery 对象
+     */
     constructor(rows, tableTarget) {
-      this.selectedCells = [];
-      this.rows = rows;
-      this.tableTarget = tableTarget;
+      this.selectedCells = []; // 存储选中的单元格
+      this.rows = rows; // 表格行数据
+      this.tableTarget = tableTarget; // 表格 DOM 元素
     }
 
+    /**
+     * 清除所有选中的单元格
+     */
     clear() {
       this.tableTarget.find("td").removeClass("selected");
     }
 
+    /**
+     * 设置单选模式的起始单元格
+     * @param {CellPosition} cell - 要设置为起始单元格的位置
+     */
     setSingleSelect(cell) {
       this.startCell = cell;
       this.selectedCells = [];
     }
 
+    /**
+     * 获取单选模式下选中的单元格
+     * @returns {CellPosition|undefined} 返回选中的单元格位置，如果是多选则返回 undefined
+     */
     getSingleSelect() {
       if (this.selectedCells.length) {
         if (this.selectedCells.length === 1) {
@@ -65,6 +96,11 @@ export default function SelectCellsByCoordinates(module, exports, require) {
       return this.startCell;
     }
 
+    /**
+     * 通过坐标进行单选
+     * @param {number} x - x坐标
+     * @param {number} y - y坐标
+     */
     singleSelectByXY(x, y) {
       const cellPosition = this.getCellByXY(x, y);
       if (cellPosition) {
@@ -75,6 +111,11 @@ export default function SelectCellsByCoordinates(module, exports, require) {
       }
     }
 
+    /**
+     * 通过坐标进行多选
+     * @param {number} x - x坐标
+     * @param {number} y - y坐标
+     */
     multipleSelectByXY(x, y) {
       this.clear();
       const selectedCells = [];
@@ -91,6 +132,11 @@ export default function SelectCellsByCoordinates(module, exports, require) {
       this.selectedCells = selectedCells;
     }
 
+    /**
+     * 根据矩形区域选择单元格
+     * @param {SelectionRectangle} selectionRect - 选择区域
+     * @param {Array} selectedCells - 存储选中的单元格数组
+     */
     selectByRect(selectionRect, selectedCells) {
       this.rows.forEach((row, rowIndex) => {
         const rowCells = [];
@@ -109,10 +155,20 @@ export default function SelectCellsByCoordinates(module, exports, require) {
       }
     }
 
+    /**
+     * 获取所有选中的单元格
+     * @returns {Array} 返回选中的单元格数组
+     */
     getSelectedCells() {
       return this.selectedCells;
     }
 
+    /**
+     * 通过坐标获取单元格
+     * @param {number} x - x坐标
+     * @param {number} y - y坐标
+     * @returns {CellPosition|undefined} 返回坐标所在的单元格位置
+     */
     getCellByXY(x, y) {
       let cellPosition;
       this.rows.forEach((row, rowIndex) => {
