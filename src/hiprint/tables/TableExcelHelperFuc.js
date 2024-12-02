@@ -1,5 +1,9 @@
 import { i18n } from "../i18n/i18n";
 
+/**
+ * 表格Excel辅助类
+ * 用于处理表格的Excel导出相关功能
+ */
 function TableExcelHelperFunction(module, exports, require) {
   "use strict";
 
@@ -11,6 +15,12 @@ function TableExcelHelperFunction(module, exports, require) {
     AssetsPluginsHinnn = require(0);
 
   class TableExcelHelper {
+    /**
+     * 创建表格头部
+     * @param {Object} tableData 表格数据
+     * @param {Object} options 配置选项
+     * @returns {Array} 返回thead和colgroup元素数组
+     */
     static createTableHead(tableData, options) {
       const columnTree =
         TableExcelHelper.reconsitutionTableColumnTree(tableData);
@@ -68,6 +78,17 @@ function TableExcelHelperFunction(module, exports, require) {
       return [theadElement, colgroupElement];
     }
 
+    /**
+     * 创建表格页脚
+     * @param {Object} tableData 表格数据
+     * @param {Array} footerData 页脚数据
+     * @param {Object} options 配置选项
+     * @param {Object} i18nOptions 国际化选项
+     * @param {Object} otherOptions 其他选项
+     * @param {Array} repeatData 重复数据
+     * @param {Number} pageIndex 页码
+     * @returns {jQuery} 返回tfoot元素
+     */
     static createTableFooter(
       tableData,
       footerData,
@@ -235,6 +256,13 @@ function TableExcelHelperFunction(module, exports, require) {
       return tfootElement;
     }
 
+    /**
+     * 生成表格汇总标题
+     * @param {Object} column 列配置
+     * @param {String} title 标题文本
+     * @param {Object} data 数据
+     * @returns {String} 返回格式化后的标题HTML
+     */
     static tableSummaryTitle(column, title, data) {
       const showTitle =
         column.tableSummaryTitle == undefined ||
@@ -246,6 +274,15 @@ function TableExcelHelperFunction(module, exports, require) {
         : `<span style="color:firebrick">${title}</span>`;
     }
 
+    /**
+     * 创建表格行
+     * @param {Object} tableData 表格数据
+     * @param {Array} rowData 行数据
+     * @param {Object} printData 打印数据
+     * @param {Object} options 配置选项
+     * @param {Object} i18nOptions 国际化选项
+     * @returns {jQuery} 返回tbody元素
+     */
     static createTableRow(tableData, rowData, printData, options, i18nOptions) {
       const helper = this;
       const columnTree =
@@ -348,6 +385,17 @@ function TableExcelHelperFunction(module, exports, require) {
       return tbodyElement;
     }
 
+    /**
+     * 创建表格行目标
+     * @param {Object} columnTree 列树形结构
+     * @param {Object} rowData 行数据
+     * @param {Object} options 配置选项
+     * @param {Object} i18nOptions 国际化选项
+     * @param {Number} rowIndex 行索引
+     * @param {Array} tableData 表格数据
+     * @param {Object} printData 打印数据
+     * @returns {jQuery} 返回tr元素
+     */
     static createRowTarget(
       columnTree,
       rowData,
@@ -566,6 +614,12 @@ function TableExcelHelperFunction(module, exports, require) {
       return rowElement;
     }
 
+    /**
+     * 创建空行
+     * @param {Object} tableData 表格数据
+     * @param {jQuery} tableElement 表格元素
+     * @returns {jQuery} 返回空的tr元素
+     */
     static createEmptyRowTarget(tableData, tableElement) {
       const columnTree =
         TableExcelHelper.reconsitutionTableColumnTree(tableData);
@@ -587,6 +641,12 @@ function TableExcelHelperFunction(module, exports, require) {
       return emptyRowElement;
     }
 
+    /**
+     * 获取列宽度
+     * @param {Object} columnTree 列树形结构
+     * @param {Number} totalWidth 总宽度
+     * @returns {Object} 返回列宽度映射对象
+     */
     static getColumnsWidth(columnTree, totalWidth) {
       const columnWidths = {};
       const totalAutoWidth = TableExcelHelper.allAutoWidth(columnTree);
@@ -607,6 +667,12 @@ function TableExcelHelperFunction(module, exports, require) {
       return columnWidths;
     }
 
+    /**
+     * 调整表格单元格宽度
+     * @param {jQuery} tableElement 表格元素
+     * @param {Object} tableData 表格数据
+     * @param {Number} totalWidth 总宽度
+     */
     static resizeTableCellWidth(tableElement, tableData, totalWidth) {
       const columnTree =
         TableExcelHelper.reconsitutionTableColumnTree(tableData);
@@ -621,6 +687,11 @@ function TableExcelHelperFunction(module, exports, require) {
       });
     }
 
+    /**
+     * 计算自动宽度列的总宽度
+     * @param {Object} columnTree 列树形结构
+     * @returns {Number} 返回自动宽度总和
+     */
     static allAutoWidth(columnTree) {
       let totalAutoWidth = 0;
       const columnWidths = {};
@@ -635,6 +706,11 @@ function TableExcelHelperFunction(module, exports, require) {
       return totalAutoWidth;
     }
 
+    /**
+     * 计算固定宽度列的总宽度
+     * @param {Object} columnTree 列树形结构
+     * @returns {Number} 返回固定宽度总和
+     */
     static allFixedWidth(columnTree) {
       let totalFixedWidth = 0;
       const columnWidths = {};
@@ -649,6 +725,13 @@ function TableExcelHelperFunction(module, exports, require) {
       return totalFixedWidth;
     }
 
+    /**
+     * 重构表格列树形结构
+     * @param {Object} tableData 表格���据
+     * @param {Object} columnTree 列树形结构
+     * @param {Object} options 配置选项
+     * @returns {Object} 返回重构后的列树形结构
+     */
     static reconsitutionTableColumnTree(tableData, columnTree, options) {
       const columnTreeInstance =
         columnTree || new ReconsitutionTableColumns.a();
@@ -671,6 +754,10 @@ function TableExcelHelperFunction(module, exports, require) {
       return columnTreeInstance;
     }
 
+    /**
+     * 同步目标宽度到选项
+     * @param {Object} tableData 表格数据
+     */
     static syncTargetWidthToOption(tableData) {
       tableData.forEach((layer) => {
         layer.columns.forEach((column) => {
@@ -681,6 +768,12 @@ function TableExcelHelperFunction(module, exports, require) {
       });
     }
 
+    /**
+     * 获取分组字段格式化器
+     * @param {Object} options 配置选项
+     * @param {Object} tablePrintElementType 表格打印元素类型
+     * @returns {Function} 返回分组字段格式化函数
+     */
     static getGroupFieldsFormatter(options, tablePrintElementType) {
       let groupFieldsFormatter;
       if (
@@ -708,6 +801,12 @@ function TableExcelHelperFunction(module, exports, require) {
       return groupFieldsFormatter;
     }
 
+    /**
+     * 获取分组格式化器
+     * @param {Object} options 配置选项
+     * @param {Object} tablePrintElementType 表格打印元素类型
+     * @returns {Function} 返回分组格式化函数
+     */
     static getGroupFormatter(options, tablePrintElementType) {
       let groupFormatter;
       if (tablePrintElementType.groupFormatter) {
@@ -724,6 +823,12 @@ function TableExcelHelperFunction(module, exports, require) {
       return groupFormatter;
     }
 
+    /**
+     * 获取分组页脚格式化器
+     * @param {Object} options 配置选项
+     * @param {Object} tablePrintElementType 表格打印元素类型
+     * @returns {Function} 返回分组页脚格式化函数
+     */
     static getGroupFooterFormatter(options, tablePrintElementType) {
       let groupFooterFormatter;
       if (tablePrintElementType.groupFooterFormatter) {
@@ -740,6 +845,12 @@ function TableExcelHelperFunction(module, exports, require) {
       return groupFooterFormatter;
     }
 
+    /**
+     * 获取页脚格式化器
+     * @param {Object} options 配置选项
+     * @param {Object} tablePrintElementType 表格打印元素类型
+     * @returns {Function} 返回页脚格式化函数
+     */
     static getFooterFormatter(options, tablePrintElementType) {
       let footerFormatter;
       if (tablePrintElementType.footerFormatter) {
@@ -756,6 +867,12 @@ function TableExcelHelperFunction(module, exports, require) {
       return footerFormatter;
     }
 
+    /**
+     * 获取行样式器
+     * @param {Object} options 配置选项
+     * @param {Object} tablePrintElementType 表格打印元素类型
+     * @returns {Function} 返回行样式函数
+     */
     static getRowStyler(options, tablePrintElementType) {
       let rowStyler;
       if (tablePrintElementType.rowStyler) {
@@ -772,6 +889,11 @@ function TableExcelHelperFunction(module, exports, require) {
       return rowStyler;
     }
 
+    /**
+     * 获取列表格汇总格式化器
+     * @param {Object} column 列配置
+     * @returns {Function} 返回列表格汇总格式化函数
+     */
     static getColumnTableSummaryFormatter(column) {
       let tableSummaryFormatter;
       if (column.tableSummaryFormatter) {
@@ -789,6 +911,11 @@ function TableExcelHelperFunction(module, exports, require) {
       return tableSummaryFormatter;
     }
 
+    /**
+     * 获取列样式器
+     * @param {Object} column 列配置
+     * @returns {Function} 返回列样式函数
+     */
     static getColumnStyler(column) {
       let styler;
       if (column.styler) {
@@ -805,6 +932,11 @@ function TableExcelHelperFunction(module, exports, require) {
       return styler;
     }
 
+    /**
+     * 获取表头样式器
+     * @param {Object} column 列配置
+     * @returns {Function} 返回表头样式函数
+     */
     static getHeaderStyler(column) {
       let headerStyler;
       if (column.stylerHeader) {
@@ -821,6 +953,11 @@ function TableExcelHelperFunction(module, exports, require) {
       return headerStyler;
     }
 
+    /**
+     * 获取列渲染格式化器
+     * @param {Object} column 列配置
+     * @returns {Function} 返回列渲染格式化函数
+     */
     static getColumnRenderFormatter(column) {
       let renderFormatter;
       if (column.renderFormatter) {
@@ -837,6 +974,11 @@ function TableExcelHelperFunction(module, exports, require) {
       return renderFormatter;
     }
 
+    /**
+     * 获取列格式化器
+     * @param {Object} column 列配置
+     * @returns {Function} 返回列格式化函数
+     */
     static getColumnFormatter(column) {
       let formatter;
       if (column.formatter) {
@@ -853,6 +995,11 @@ function TableExcelHelperFunction(module, exports, require) {
       return formatter;
     }
 
+    /**
+     * 获取有序列
+     * @param {Object} columnTree 列树形结构
+     * @returns {Array} 返回有序的列数组
+     */
     static getOrderdColumns(columnTree) {
       let orderedColumns = {};
       for (
