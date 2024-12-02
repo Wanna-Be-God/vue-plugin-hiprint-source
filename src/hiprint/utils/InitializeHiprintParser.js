@@ -1,10 +1,3 @@
-/*
- * @Author: WANAN && 903157935@qq.com
- * @Date: 2024-11-20 21:34:41
- * @LastEditors: WANAN
- * @LastEditTime: 2024-11-23 16:47:03
- * @Description: 
- */
 /**
  * 提供解析和拖拽长度计算的功能
  * @param {*} module 
