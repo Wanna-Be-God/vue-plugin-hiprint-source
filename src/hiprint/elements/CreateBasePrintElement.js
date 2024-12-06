@@ -3,7 +3,7 @@ import { _typeof } from "../utils/Utils.js";
 /**
  * 创建基础打印元素类
  * @param {object} module - 模块对象
- * @param {object} exports - 导出对象 
+ * @param {object} exports - 导出对象
  * @param {function} require - require函数
  */
 export default function CreateBasePrintElement(module, exports, require) {
@@ -126,7 +126,7 @@ export default function CreateBasePrintElement(module, exports, require) {
     /**
      * 更新元素的大小和位置选项
      * @param {number} left - 左边距
-     * @param {number} top - 上边距 
+     * @param {number} top - 上边距
      * @param {number} width - 宽度
      * @param {number} height - 高度
      */
@@ -320,7 +320,7 @@ export default function CreateBasePrintElement(module, exports, require) {
         draggable: self.options.draggable,
         axis: self.options.axis ? self.options.axis : void 0,
         designTarget: self,
-        onDrag: function onDrag(left, top, offset) {
+        onDrag: function onDrag(dragEvent, left, top) {
           const elements = self.panel.printElements.filter(function (element) {
             return (
               element.designTarget.children().last().css("display") ===
@@ -336,7 +336,7 @@ export default function CreateBasePrintElement(module, exports, require) {
             .hasClass("selected");
           if (isMultiple) {
             const deltaX = left - self.options.left;
-            const deltaY = offset - self.options.top;
+            const deltaY = top - self.options.top;
             elements.forEach(function (element) {
               element.updateSizeAndPositionOptions(
                 deltaX + element.options.getLeft(),
@@ -347,11 +347,11 @@ export default function CreateBasePrintElement(module, exports, require) {
               element.createLineOfPosition(event);
             });
             if (notSelected) {
-              self.updateSizeAndPositionOptions(left, offset);
+              self.updateSizeAndPositionOptions(left, top);
               self.createLineOfPosition(event);
             }
           } else {
-            self.updateSizeAndPositionOptions(left, offset);
+            self.updateSizeAndPositionOptions(left, top);
             self.createLineOfPosition(event);
           }
           require_HiPrintlib.a.instance.changed = true;
