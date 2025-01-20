@@ -1,5 +1,6 @@
 import { i18n } from "../i18n/i18n.js";
 import { _instanceof } from "../utils/Utils.js";
+
 export default function TablePrintElementFactory(module, exports, require) {
   "use strict";
 
@@ -7,7 +8,7 @@ export default function TablePrintElementFactory(module, exports, require) {
     return TablePrintElement;
   });
 
-  var _BasePrintElement__WEBPACK_IMPORTED_MODULE_0__ = require(4),
+  const _BasePrintElement__WEBPACK_IMPORTED_MODULE_0__ = require(4),
     _HiPrintConfig__WEBPACK_IMPORTED_MODULE_1__ = require(1),
     _dto_PaperHtmlResult__WEBPACK_IMPORTED_MODULE_2__ = require(6),
     _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_3__ = require(0),
@@ -16,913 +17,977 @@ export default function TablePrintElementFactory(module, exports, require) {
     _table_TableExcelHelper__WEBPACK_IMPORTED_MODULE_6__ = require(7),
     _hitable_HiTale__WEBPACK_IMPORTED_MODULE_7__ = require(16),
     _table_GridColumnsStructure__WEBPACK_IMPORTED_MODULE_8__ = require(20),
-    _HiPrintlib__WEBPACK_IMPORTED_MODULE_9__ = require(2),
-    __extends =
-      ((_extendStatics = function extendStatics(t, e) {
-        return (_extendStatics =
-          Object.setPrototypeOf ||
-          (_instanceof(
-            {
-              __proto__: [],
-            },
-            Array
-          ) &&
-            function (t, e) {
-              t.__proto__ = e;
-            }) ||
-          function (t, e) {
-            for (var n in e) {
-              e.hasOwnProperty(n) && (t[n] = e[n]);
-            }
-          })(t, e);
-      }),
-      function (t, e) {
-        function n() {
-          this.constructor = t;
-        }
+    _HiPrintlib__WEBPACK_IMPORTED_MODULE_9__ = require(2);
 
-        _extendStatics(t, e),
-          (t.prototype =
-            null === e
-              ? Object.create(e)
-              : ((n.prototype = e.prototype), new n()));
-      }),
-    _extendStatics,
-    TablePrintElement = (function (_super) {
-      function TablePrintElement(t, e) {
-        var n = _super.call(this, t) || this;
-        return (
-          (n.gridColumnsFooterCss = "hiprint-gridColumnsFooter"),
-          (n.tableGridRowCss = "table-grid-row"),
-          (n.options =
-            new _option_TablePrintElementOption__WEBPACK_IMPORTED_MODULE_5__.a(
-              e,
-              n.printElementType
-            )),
-          n.options.setDefault(
-            new _option_TablePrintElementOption__WEBPACK_IMPORTED_MODULE_5__.a(
-              _HiPrintConfig__WEBPACK_IMPORTED_MODULE_1__.a.instance.table.default
-            ).getPrintElementOptionEntity()
-          ),
-          n
+  class TablePrintElement extends _BasePrintElement__WEBPACK_IMPORTED_MODULE_0__.a {
+    constructor(templateId, options) {
+      super(templateId);
+      this.gridColumnsFooterCss = "hiprint-gridColumnsFooter";
+      this.tableGridRowCss = "table-grid-row";
+      this.options =
+        new _option_TablePrintElementOption__WEBPACK_IMPORTED_MODULE_5__.a(
+          options,
+          this.printElementType
         );
+      this.options.setDefault(
+        new _option_TablePrintElementOption__WEBPACK_IMPORTED_MODULE_5__.a(
+          _HiPrintConfig__WEBPACK_IMPORTED_MODULE_1__.a.instance.table.default
+        ).getPrintElementOptionEntity()
+      );
+    }
+
+    getColumns() {
+      return this.options.columns;
+    }
+
+    getColumnByColumnId(columnId) {
+      return this.options.getColumnByColumnId(columnId);
+    }
+
+    updateDesignViewFromOptions() {
+      if (this.designTarget) {
+        const tableContent = this.designTarget.find(
+          ".hiprint-printElement-table-content"
+        );
+        const htmlResult = this.getHtml(this.designPaper);
+        tableContent.html("");
+        tableContent.append(htmlResult[0].target.find(".table-grid-row"));
+        if (this.printElementType.editable) this.setHitable();
+        this.setColumnsOptions();
+        this.css(this.designTarget, this.getData());
+      }
+    }
+
+    css(target, data) {
+      if (
+        (this.getField() || !this.options.content) &&
+        !this.printElementType.formatter
+      ) {
+        return super.css(target, data);
+      }
+    }
+
+    getDesignTarget(paper) {
+      this.designTarget = this.getHtml(paper)[0].target;
+      this.css(this.designTarget, this.getData());
+      this.designPaper = paper;
+      this.designTarget.find("td").hidroppable({
+        accept: ".rn-draggable-item",
+        onDrop: function (event, element) {},
+        onDragEnter: function (event, element) {
+          $(element).removeClass("rn-draggable-item");
+        },
+        onDragLeave: function (event, element) {
+          $(element).addClass("rn-draggable-item");
+        },
+      });
+      return this.designTarget;
+    }
+
+    getConfigOptions() {
+      return _HiPrintConfig__WEBPACK_IMPORTED_MODULE_1__.a.instance.table;
+    }
+
+    createTarget(title, data, paper) {
+      const container = $(
+        '<div class="hiprint-printElement hiprint-printElement-table" style="position: absolute;"><div class="hiprint-printElement-table-handle"></div><div class="hiprint-printElement-table-content" style="height:100%;width:100%"></span></div>'
+      );
+      const gridStructure = this.createGridColumnsStructure(paper);
+      for (let i = 0; i < gridStructure.gridColumns; i++) {
+        gridStructure.getByIndex(i).append(this.getTableHtml(data, paper));
+      }
+      container
+        .find(".hiprint-printElement-table-content")
+        .append(gridStructure.target);
+      return container;
+    }
+
+    createGridColumnsStructure(paper) {
+      const row = $('<div class="hi-grid-row table-grid-row"></div>');
+      for (let i = 0; i < this.options.getGridColumns(); i++) {
+        const column = $(
+          '<div class="tableGridColumnsGutterRow hi-grid-col" style="width:' +
+            100 / this.options.getGridColumns() +
+            '%;"></div>'
+        );
+        row.append(column);
       }
 
-      return (
-        __extends(TablePrintElement, _super),
-        (TablePrintElement.prototype.getColumns = function () {
-          return this.options.columns;
-        }),
-        (TablePrintElement.prototype.getColumnByColumnId = function (t) {
-          return this.options.getColumnByColumnId(t);
-        }),
-        (TablePrintElement.prototype.updateDesignViewFromOptions = function () {
-          if (this.designTarget) {
-            var t = this.designTarget.find(
-                ".hiprint-printElement-table-content"
-              ),
-              e = this.getHtml(this.designPaper);
-            t.html(""),
-              t.append(e[0].target.find(".table-grid-row")),
-              this.printElementType.editable && this.setHitable(),
-              this.setColumnsOptions();
-            // 渲染完再处理样式 ==> fix 表脚边框参数设置问题
-            this.css(this.designTarget, this.getData());
-          }
-        }),
-        (TablePrintElement.prototype.css = function (t, e) {
-          if (
-            (this.getField() || !this.options.content) &&
-            !this.printElementType.formatter
+      const footerFormatter = this.getGridColumnsFooterFormatter();
+      if (footerFormatter) {
+        const footer = $('<div class="hiprint-gridColumnsFooter"></div>');
+        footer.append(
+          footerFormatter(this.options, this.getData(paper), paper, [])
+        );
+        row.append(footer);
+      }
+
+      return new _table_GridColumnsStructure__WEBPACK_IMPORTED_MODULE_8__.a(
+        this.options.getGridColumns(),
+        row
+      );
+    }
+
+    createtempEmptyRowsTargetStructure(paper) {
+      if (this.getField()) {
+        return this.createTarget(this.printElementType.title, []);
+      }
+      const emptyTarget = this.createTarget(
+        this.printElementType.title,
+        []
+      ).clone();
+      emptyTarget.find(".hiprint-printElement-tableTarget tbody tr").remove();
+      return emptyTarget;
+    }
+
+    getTableHtml(data, paper) {
+      let tableHtml;
+      if (!this.getField() && this.options.content) {
+        const container = $("<div></div>");
+        container.append(this.options.content);
+        tableHtml = container
+          .find("table")
+          .addClass("hiprint-printElement-tableTarget");
+        return tableHtml;
+      }
+      if (this.printElementType.formatter) {
+        const container = $("<div></div>");
+        container.append(this.printElementType.formatter(data));
+        tableHtml = container
+          .find("table")
+          .addClass("hiprint-printElement-tableTarget");
+        return tableHtml;
+      }
+
+      const table = $(
+        '<table class="hiprint-printElement-tableTarget" style="border-collapse: collapse;"></table>'
+      );
+      const headerList =
+        _table_TableExcelHelper__WEBPACK_IMPORTED_MODULE_6__.a.createTableHead(
+          this.getColumns(),
+          this.options.getWidth() / this.options.getGridColumns()
+        );
+      if (this.isNotDesign) {
+        table.append(headerList);
+      } else {
+        table.append(headerList[0]);
+      }
+      table.append(
+        _table_TableExcelHelper__WEBPACK_IMPORTED_MODULE_6__.a.createTableRow(
+          this.getColumns(),
+          data,
+          paper,
+          this.options,
+          this.printElementType
+        )
+      );
+      if (
+        this.options.tableFooterRepeat !== "no" ||
+        _table_TableExcelHelper__WEBPACK_IMPORTED_MODULE_6__.a
+          .createTableFooter(
+            this.printElementType.columns,
+            data,
+            this.options,
+            this.printElementType,
+            paper,
+            data
           )
-            return _super.prototype.css.call(this, t, e);
-        }),
-        (TablePrintElement.prototype.getDesignTarget = function (t) {
-          return (
-            (this.designTarget = this.getHtml(t)[0].target),
-            this.css(this.designTarget, this.getData()),
-            (this.designPaper = t),
-            this.designTarget.find("td").hidroppable({
-              accept: ".rn-draggable-item",
-              onDrop: function onDrop(t, e) {},
-              onDragEnter: function onDragEnter(t, e) {
-                $(e).removeClass("rn-draggable-item");
-              },
-              onDragLeave: function onDragLeave(t, e) {
-                $(e).addClass("rn-draggable-item");
-              },
-            }),
-            this.designTarget
-          );
-        }),
-        (TablePrintElement.prototype.getConfigOptions = function () {
-          return _HiPrintConfig__WEBPACK_IMPORTED_MODULE_1__.a.instance.table;
-        }),
-        (TablePrintElement.prototype.createTarget = function (t, e, n) {
-          for (
-            var i = $(
-                '<div class="hiprint-printElement hiprint-printElement-table" style="position: absolute;"><div class="hiprint-printElement-table-handle"></div><div class="hiprint-printElement-table-content" style="height:100%;width:100%"></span></div>'
-              ),
-              o = this.createGridColumnsStructure(n),
-              r = 0;
-            r < o.gridColumns;
-            r++
-          ) {
-            o.getByIndex(r).append(this.getTableHtml(e, n));
-          }
+          .insertBefore(table.find("tbody"))
+      ) {
+        return table;
+      }
+      return table;
+    }
 
-          return (
-            i.find(".hiprint-printElement-table-content").append(o.target), i
-          );
-        }),
-        (TablePrintElement.prototype.createGridColumnsStructure = function (t) {
-          for (
-            var e = $('<div class="hi-grid-row table-grid-row"></div>'), n = 0;
-            n < this.options.getGridColumns();
-            n++
-          ) {
-            var i = $(
-              '<div class="tableGridColumnsGutterRow hi-grid-col" style="width:' +
-                100 / this.options.getGridColumns() +
-                '%;"></div>'
-            );
-            e.append(i);
-          }
+    getEmptyRowTarget() {
+      return _table_TableExcelHelper__WEBPACK_IMPORTED_MODULE_6__.a.createEmptyRowTarget(
+        this.getColumns(),
+        this
+      );
+    }
 
-          var o = this.getGridColumnsFooterFormatter();
+    getHtml(paper, isNotDesign) {
+      this.createTempContainer();
+      this.isNotDesign = isNotDesign !== undefined;
+      const result = this.getPaperHtmlResult(paper, isNotDesign);
+      this.removeTempContainer();
+      return result;
+    }
 
-          if (o) {
-            var r = $('<div class="hiprint-gridColumnsFooter"></div>');
-            r.append(o(this.options, this.getData(t), t, [])), e.append(r);
-          }
+    getPaperHtmlResult(paper, isNotDesign) {
+      const results = [];
+      const data = this.getData(isNotDesign);
+      const tableHtml = this.getTableHtml(data, isNotDesign);
+      const emptyRowsTarget =
+        this.createtempEmptyRowsTargetStructure(isNotDesign);
 
-          return new _table_GridColumnsStructure__WEBPACK_IMPORTED_MODULE_8__.a(
-            this.options.getGridColumns(),
-            e
-          );
-        }),
-        (TablePrintElement.prototype.createtempEmptyRowsTargetStructure =
-          function (t) {
-            if (this.getField())
-              return this.createTarget(this.printElementType.title, []);
-            var e = this.createTarget(this.printElementType.title, []).clone();
-            return (
-              e.find(".hiprint-printElement-tableTarget tbody tr").remove(), e
-            );
-          }),
-        (TablePrintElement.prototype.getTableHtml = function (t, e) {
-          var n, i;
-          if (!this.getField() && this.options.content)
-            return (
-              (n = $("<div></div>")).append(this.options.content),
-              (i = n.find("table")).addClass(
-                "hiprint-printElement-tableTarget"
-              ),
-              i
-            );
-          if (this.printElementType.formatter)
-            return (
-              (n = $("<div></div>")).append(this.printElementType.formatter(t)),
-              (i = n.find("table")).addClass(
-                "hiprint-printElement-tableTarget"
-              ),
-              i
-            );
-          var o = $(
-            '<table class="hiprint-printElement-tableTarget" style="border-collapse: collapse;"></table>'
-          );
-          let headerList =
-            _table_TableExcelHelper__WEBPACK_IMPORTED_MODULE_6__.a.createTableHead(
-              this.getColumns(),
-              this.options.getWidth() / this.options.getGridColumns()
-            );
-          return (
-            this.isNotDesign ? o.append(headerList) : o.append(headerList[0]),
-            o.append(
-              _table_TableExcelHelper__WEBPACK_IMPORTED_MODULE_6__.a.createTableRow(
-                this.getColumns(),
-                t,
-                e,
-                this.options,
-                this.printElementType
-              )
-            ),
-            "no" == this.options.tableFooterRepeat ||
-              _table_TableExcelHelper__WEBPACK_IMPORTED_MODULE_6__.a
-                .createTableFooter(
-                  this.printElementType.columns,
-                  t,
-                  this.options,
-                  this.printElementType,
-                  e,
-                  t
-                )
-                .insertBefore(o.find("tbody")),
-            o
-          );
-        }),
-        (TablePrintElement.prototype.getEmptyRowTarget = function () {
-          return _table_TableExcelHelper__WEBPACK_IMPORTED_MODULE_6__.a.createEmptyRowTarget(
-            this.getColumns(),
-            this
-          );
-        }),
-        (TablePrintElement.prototype.getHtml = function (t, e) {
-          this.createTempContainer();
-          this.isNotDesign = e != void 0;
-          var n = this.getPaperHtmlResult(t, e);
-          return this.removeTempContainer(), n;
-        }),
-        (TablePrintElement.prototype.getPaperHtmlResult = function (t, e) {
-          var n = [],
-            i = this.getData(e),
-            o = this.getTableHtml(i, e),
-            r = this.createtempEmptyRowsTargetStructure(e);
-          e ? this.updateTargetWidth(r) : this.updateTargetSize(r),
-            this.css(r, i),
-            this.css(o, i),
-            this.getTempContainer().html(""),
-            this.getTempContainer().append(r);
-          // 页脚导致 分页高度的问题, -> 获取到表格脚高度后移除避免重复
-          var tfh = r.find("tfoot").outerHeight() || 0;
-          r.find("tfoot").remove();
-          for (
-            var a,
-              p = this.getBeginPrintTopInPaperByReferenceElement(t),
-              s = 0,
-              l = !1;
-            !l;
+      if (isNotDesign) {
+        this.updateTargetWidth(emptyRowsTarget);
+      } else {
+        this.updateTargetSize(emptyRowsTarget);
+      }
 
-          ) {
-            var u = 0,
-              d = t.getPaperFooter(s);
-            0 == s &&
-              p > d &&
-              "none" != t.panelPageRule &&
-              ((p = p - d + t.paperHeader),
-              n.push(
-                new _dto_PaperHtmlResult__WEBPACK_IMPORTED_MODULE_2__.a({
-                  target: void 0,
-                  printLine: void 0,
-                })
-              ),
-              (u = t.getContentHeight(s) - (p - t.paperHeader)),
-              s++,
-              (d = t.getPaperFooter(s)));
-            var c = n.length > 0 ? n[n.length - 1].target : void 0,
-              h = this.getRowsInSpecificHeight(
-                e,
-                u > 0 ? u : 0 == s ? d - p : t.getContentHeight(s),
-                r,
-                o,
-                s,
-                c,
-                tfh
-              );
-            l = h.isEnd;
-            if (u < 0) {
-              n[0].target = $(
-                `<div style="position:absolute;background: red;color: white;padding: 0px 4px;">${i18n.__(
-                  "没有足够空间进行表格分页，请调整页眉/页脚线"
-                )}</div>`
-              );
-              n[0].printLine = p;
-              n[0].referenceElement =
-                new _PrintReferenceElement__WEBPACK_IMPORTED_MODULE_4__.a({
-                  top: this.options.getTop(),
-                  left: this.options.getLeft(),
-                  height: this.options.getHeight(),
-                  width: this.options.getWidth(),
-                  beginPrintPaperIndex: t.index,
-                  bottomInLastPaper: p + this.options.lHeight,
-                  printTopInPaper: p,
-                });
-              n[0].target.css("top", p + "pt");
-              n[0].target.css("left", this.options.displayLeft());
-              break;
-            }
-            var f = void 0;
-            h.target &&
-              (h.target.css("left", this.options.displayLeft()),
-              (h.target[0].height = ""));
-            if (0 == s || u > 0) {
-              h.target && ((a = p), h.target.css("top", p + "pt")),
-                (f =
-                  l && null != this.options.lHeight
-                    ? p +
-                      (h.height > this.options.lHeight
-                        ? h.height
-                        : this.options.lHeight)
-                    : p + h.height);
-            } else {
-              h.target &&
-                ((a = t.paperHeader),
-                h.target.css("top", t.paperHeader + "pt")),
-                (f = t.paperHeader + h.height);
-            }
-            n.push(
-              new _dto_PaperHtmlResult__WEBPACK_IMPORTED_MODULE_2__.a({
-                target: h.target,
-                printLine: f,
-                referenceElement:
-                  new _PrintReferenceElement__WEBPACK_IMPORTED_MODULE_4__.a({
-                    top: this.options.getTop(),
-                    left: this.options.getLeft(),
-                    height: this.options.getHeight(),
-                    width: this.options.getWidth(),
-                    beginPrintPaperIndex: t.index,
-                    bottomInLastPaper: f,
-                    printTopInPaper: a,
-                  }),
-              })
-            ),
-              s++;
-            e && this.updatePanelHeight(f + this.options.getHeight(), t);
-          }
+      this.css(emptyRowsTarget, data);
+      this.css(tableHtml, data);
+      this.getTempContainer().html("");
+      this.getTempContainer().append(emptyRowsTarget);
 
-          return n;
-        }),
-        (TablePrintElement.prototype.getRowsInSpecificHeight = function (
-          t,
-          e,
-          n,
-          i,
-          o,
-          r,
-          tfh
+      const tableFooterHeight =
+        emptyRowsTarget.find("tfoot").outerHeight() || 0;
+      emptyRowsTarget.find("tfoot").remove();
+
+      let printTop = this.getBeginPrintTopInPaperByReferenceElement(paper);
+      let pageIndex = 0;
+      let isEnd = false;
+
+      while (!isEnd) {
+        let currentHeight = 0;
+        let paperFooter = paper.getPaperFooter(pageIndex);
+
+        // 处理第一页的特殊情况
+        if (
+          pageIndex === 0 &&
+          printTop > paperFooter &&
+          paper.panelPageRule !== "none"
         ) {
-          var that = this;
-          var a = i.find("tbody"),
-            p = _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_3__.a.pt.toPx(e);
+          printTop = printTop - paperFooter + paper.paperHeader;
+          results.push(
+            new _dto_PaperHtmlResult__WEBPACK_IMPORTED_MODULE_2__.a({
+              target: undefined,
+              printLine: undefined,
+            })
+          );
+          currentHeight =
+            paper.getContentHeight(pageIndex) - (printTop - paper.paperHeader);
+          pageIndex++;
+          paperFooter = paper.getPaperFooter(pageIndex);
+        }
 
-          n.find(".hiprint-printElement-tableTarget tbody").html("");
-          // 不是最后显示页脚
-          if ("last" != this.options.tableFooterRepeat) {
-            n.find(".hiprint-printElement-tableTarget tfoot").remove();
-          }
-          // 仅首页显示表头
-          if ("first" == this.options.tableHeaderRepeat && o > 0) {
-            n.find(".hiprint-printElement-tableTarget thead").remove();
-          } else if ("none" == this.options.tableHeaderRepeat) {
-            // 有数据（不是design）
-            if (t) {
-              n.find(".hiprint-printElement-tableTarget thead").remove();
-            } else {
-              n.find(".hiprint-printElement-tableTarget thead").css(
-                "background",
-                "firebrick"
-              );
-              n.find(".hiprint-printElement-tableTarget thead tr").css(
-                "background",
-                "firebrick"
-              );
-            }
-          }
-          var noPaging = "none" == this.panel.panelPageRule;
-          // 不分页, 且不是设计时, 移除 thead
-          var headTr;
-          if (t && noPaging) {
-            var headStyle = n
-              .find(".hiprint-printElement-tableTarget thead")
-              .attr("style");
-            headTr = n
-              .find(".hiprint-printElement-tableTarget thead tr")
-              .clone();
-            if (headStyle) {
-              headTr.attr("style", headStyle);
-            } else {
-              headTr.css({ background: "#e8e8e8" });
-            }
-            n.find(".hiprint-printElement-tableTarget thead").remove();
-          }
-          var s = n.outerHeight();
-          if (!noPaging && s > p)
-            return {
-              target: void 0,
-              length: 0,
-              height: 0,
-              isEnd: !1,
-            };
-          var getGridColumns = this.options.getGridColumns();
-          for (var l = [], u = 0; u < getGridColumns; u++) {
-            for (
-              var d = n.find(".hiprint-printElement-tableTarget:eq(" + u + ")"),
-                c = void 0,
-                h = [];
-              ;
+        const previousResultTarget =
+          results.length > 0 ? results[results.length - 1].target : undefined;
 
-            ) {
-              // 不分页处理
-              if (noPaging) {
-                var trLen = a.find("tr").length;
-                if (0 == trLen)
-                  (c = {
-                    height:
-                      _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_3__.a.px.toPt(
-                        s
-                      ),
-                    isEnd: !0,
-                  }),
-                    t &&
-                      this.options.autoCompletion &&
-                      (this.autoCompletion(p, d, tfh), (s = n.outerHeight()));
-                else {
-                  var f = a.find("tr:lt(1)");
-                  if (h.length == 0 && headTr) {
-                    d.find("tbody").append(headTr);
-                  }
-                  d.find("tbody").append(f);
-                  var g = f.data("rowData");
-                  l.push(g), h.push(g), (s = n.outerHeight());
-                  0 == trLen &&
-                    (a.prepend(f),
-                    l.pop(),
-                    h.pop(),
-                    (c = {
-                      height:
-                        _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_3__.a.px.toPt(
-                          s
-                        ),
-                      isEnd: !1,
-                    }));
+        // 获取当前页的行数据
+        const rowsResult = this.getRowsInSpecificHeight(
+          isNotDesign,
+          currentHeight > 0
+            ? currentHeight
+            : pageIndex === 0
+            ? paperFooter - printTop
+            : paper.getContentHeight(pageIndex),
+          emptyRowsTarget,
+          tableHtml,
+          pageIndex,
+          previousResultTarget,
+          tableFooterHeight
+        );
+        isEnd = rowsResult.isEnd;
+
+        // 如果当前高度不足，显示错误提示
+        if (currentHeight < 0) {
+          results[0].target = $(
+            `<div style="position:absolute;background: red;color: white;padding: 0px 4px;">${i18n.__(
+              "没有足够空间进行表格分页，请调整页眉/页脚线"
+            )}</div>`
+          );
+          results[0].printLine = printTop;
+          results[0].referenceElement =
+            new _PrintReferenceElement__WEBPACK_IMPORTED_MODULE_4__.a({
+              top: this.options.getTop(),
+              left: this.options.getLeft(),
+              height: this.options.getHeight(),
+              width: this.options.getWidth(),
+              beginPrintPaperIndex: paper.index,
+              bottomInLastPaper: printTop + this.options.lHeight,
+              printTopInPaper: printTop,
+            });
+          results[0].target.css("top", printTop + "pt");
+          results[0].target.css("left", this.options.displayLeft());
+          break;
+        }
+
+        let targetTop;
+        let nextPrintLine;
+
+        // 计算下一页的打印位置
+        if (rowsResult.target) {
+          rowsResult.target.css("left", this.options.displayLeft());
+          rowsResult.target[0].height = "";
+
+          if (pageIndex === 0 || currentHeight > 0) {
+            targetTop = printTop;
+            rowsResult.target.css("top", printTop + "pt");
+            nextPrintLine =
+              isEnd && this.options.lHeight !== null
+                ? printTop +
+                  (rowsResult.height > this.options.lHeight
+                    ? rowsResult.height
+                    : this.options.lHeight)
+                : printTop + rowsResult.height;
+          } else {
+            targetTop = paper.paperHeader;
+            rowsResult.target.css("top", paper.paperHeader + "pt");
+            nextPrintLine = paper.paperHeader + rowsResult.height;
+          }
+        }
+
+        // 将当前页的结果添加到结果集中
+        results.push(
+          new _dto_PaperHtmlResult__WEBPACK_IMPORTED_MODULE_2__.a({
+            target: rowsResult.target,
+            printLine: nextPrintLine,
+            referenceElement:
+              new _PrintReferenceElement__WEBPACK_IMPORTED_MODULE_4__.a({
+                top: this.options.getTop(),
+                left: this.options.getLeft(),
+                height: this.options.getHeight(),
+                width: this.options.getWidth(),
+                beginPrintPaperIndex: paper.index,
+                bottomInLastPaper: nextPrintLine,
+                printTopInPaper: targetTop,
+              }),
+          })
+        );
+
+        pageIndex++;
+        if (isNotDesign) {
+          this.updatePanelHeight(
+            nextPrintLine + this.options.getHeight(),
+            paper
+          );
+        }
+      }
+
+      return results;
+    }
+
+    getRowsInSpecificHeight(
+      isNotDesign,
+      height,
+      emptyRowsTarget,
+      tableHtml,
+      pageIndex,
+      previousResultTarget,
+      tableFooterHeight
+    ) {
+      const that = this;
+      const tableBody = tableHtml.find("tbody");
+      const heightInPx =
+        _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_3__.a.pt.toPx(height);
+
+      emptyRowsTarget.find(".hiprint-printElement-tableTarget tbody").html("");
+      if (this.options.tableFooterRepeat !== "last") {
+        emptyRowsTarget
+          .find(".hiprint-printElement-tableTarget tfoot")
+          .remove();
+      }
+      if (this.options.tableHeaderRepeat === "first" && pageIndex > 0) {
+        emptyRowsTarget
+          .find(".hiprint-printElement-tableTarget thead")
+          .remove();
+      } else if (this.options.tableHeaderRepeat === "none") {
+        if (isNotDesign) {
+          emptyRowsTarget
+            .find(".hiprint-printElement-tableTarget thead")
+            .remove();
+        } else {
+          emptyRowsTarget
+            .find(".hiprint-printElement-tableTarget thead")
+            .css("background", "firebrick");
+          emptyRowsTarget
+            .find(".hiprint-printElement-tableTarget thead tr")
+            .css("background", "firebrick");
+        }
+      }
+
+      const noPaging = this.panel.panelPageRule === "none";
+      let headerRow;
+      if (isNotDesign && noPaging) {
+        const headStyle = emptyRowsTarget
+          .find(".hiprint-printElement-tableTarget thead")
+          .attr("style");
+        headerRow = emptyRowsTarget
+          .find(".hiprint-printElement-tableTarget thead tr")
+          .clone();
+        if (headStyle) {
+          headerRow.attr("style", headStyle);
+        } else {
+          headerRow.css({ background: "#e8e8e8" });
+        }
+        emptyRowsTarget
+          .find(".hiprint-printElement-tableTarget thead")
+          .remove();
+      }
+
+      let currentHeight = emptyRowsTarget.outerHeight();
+      if (!noPaging && currentHeight > heightInPx) {
+        return {
+          target: undefined,
+          length: 0,
+          height: 0,
+          isEnd: false,
+        };
+      }
+
+      const gridColumns = this.options.getGridColumns();
+      const rowsData = [];
+      for (let i = 0; i < gridColumns; i++) {
+        const tableTarget = emptyRowsTarget.find(
+          ".hiprint-printElement-tableTarget:eq(" + i + ")"
+        );
+        let result;
+        const rowData = [];
+        while (true) {
+          if (noPaging) {
+            const trLength = tableBody.find("tr").length;
+            if (trLength === 0) {
+              result = {
+                height:
+                  _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_3__.a.px.toPt(
+                    currentHeight
+                  ),
+                isEnd: true,
+              };
+              if (isNotDesign && this.options.autoCompletion) {
+                this.autoCompletion(heightInPx, tableTarget, tableFooterHeight);
+                currentHeight = emptyRowsTarget.outerHeight();
+              }
+            } else {
+              const firstRow = tableBody.find("tr:lt(1)");
+              if (rowData.length === 0 && headerRow) {
+                tableTarget.find("tbody").append(headerRow);
+              }
+              tableTarget.find("tbody").append(firstRow);
+              const rowDataItem = firstRow.data("rowData");
+              rowsData.push(rowDataItem);
+              rowData.push(rowDataItem);
+              currentHeight = emptyRowsTarget.outerHeight();
+              if (trLength === 0) {
+                tableBody.prepend(firstRow);
+                rowsData.pop();
+                rowData.pop();
+                result = {
+                  height:
+                    _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_3__.a.px.toPt(
+                      currentHeight
+                    ),
+                  isEnd: false,
+                };
+              }
+            }
+          } else {
+            if (currentHeight <= heightInPx) {
+              if (tableBody.find("tr").length === 0) {
+                result = {
+                  height:
+                    _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_3__.a.px.toPt(
+                      currentHeight
+                    ),
+                  isEnd: true,
+                };
+                if (isNotDesign && this.options.autoCompletion) {
+                  this.autoCompletion(
+                    heightInPx,
+                    tableTarget,
+                    tableFooterHeight
+                  );
+                  currentHeight = tableTarget.outerHeight();
                 }
               } else {
-                if (s <= p)
-                  if (0 == a.find("tr").length)
-                    (c = {
-                      height:
-                        _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_3__.a.px.toPt(
-                          s
-                        ),
-                      isEnd: !0,
-                    }),
-                      t &&
-                        this.options.autoCompletion &&
-                        (this.autoCompletion(p, d, tfh), (s = d.outerHeight()));
-                  else {
-                    var f = a.find("tr:lt(1)");
-                    if (
-                      that.options.rowsColumnsMerge &&
-                      (o > 0 || u > 0) &&
-                      h.length == 0
-                    ) {
-                      f = that.fixMergeSpan(f, a);
-                    }
-                    d.find("tbody").append(f);
-                    var g = f.data("rowData");
-                    l.push(g),
-                      h.push(g),
-                      (((s = d.outerHeight()),
-                      "last" == this.options.tableFooterRepeat
-                        ? s
-                        : (s += tfh)) > p ||
-                        (this.options.maxRows &&
-                          h.length > +this.options.maxRows)) &&
-                        (a.prepend(f),
-                        l.pop(),
-                        h.pop(),
-                        (s = d.outerHeight()),
-                        (c = {
-                          height:
-                            _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_3__.a.px.toPt(
-                              s
-                            ),
-                          isEnd: !1,
-                        }));
-                  }
+                let firstRow = tableBody.find("tr:lt(1)");
+                if (
+                  this.options.rowsColumnsMerge &&
+                  (pageIndex > 0 || i > 0) &&
+                  rowData.length === 0
+                ) {
+                  firstRow = this.fixMergeSpan(firstRow, tableBody);
+                }
+                tableTarget.find("tbody").append(firstRow);
+                const rowDataItem = firstRow.data("rowData");
+                rowsData.push(rowDataItem);
+                rowData.push(rowDataItem);
+                if (
+                  ((currentHeight = tableTarget.outerHeight()),
+                  this.options.tableFooterRepeat === "last"
+                    ? currentHeight
+                    : (currentHeight += tableFooterHeight)) > heightInPx ||
+                  (this.options.maxRows &&
+                    rowData.length > +this.options.maxRows)
+                ) {
+                  tableBody.prepend(firstRow);
+                  rowsData.pop();
+                  rowData.pop();
+                  currentHeight = tableTarget.outerHeight();
+                  result = {
+                    height:
+                      _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_3__.a.px.toPt(
+                        currentHeight
+                      ),
+                    isEnd: false,
+                  };
+                }
               }
+            }
+          }
 
-              if (c) {
-                // 这里是table 没有tfoot, 后面再看什么原因...
-                if ("last" == this.options.tableFooterRepeat && !c.isEnd) break;
-                if ("no" !== this.options.tableFooterRepeat) {
-                  if (noPaging) {
-                    d.find("tbody").append(
-                      _table_TableExcelHelper__WEBPACK_IMPORTED_MODULE_6__.a
-                        .createTableFooter(
-                          this.printElementType.columns,
-                          this.getData(t),
-                          this.options,
-                          this.printElementType,
-                          t,
-                          h,
-                          o
-                        )
-                        .children()
-                    );
-                  } else {
+          if (result) {
+            if (this.options.tableFooterRepeat === "last" && !result.isEnd)
+              break;
+            if (this.options.tableFooterRepeat !== "no") {
+              if (noPaging) {
+                tableTarget
+                  .find("tbody")
+                  .append(
                     _table_TableExcelHelper__WEBPACK_IMPORTED_MODULE_6__.a
                       .createTableFooter(
                         this.printElementType.columns,
-                        this.getData(t),
+                        this.getData(isNotDesign),
                         this.options,
                         this.printElementType,
-                        t,
-                        h,
-                        o
+                        isNotDesign,
+                        rowData,
+                        pageIndex
                       )
-                      .insertBefore(d.find("tbody"));
-                  }
-                  that.css(d, t);
-                }
-                break;
+                      .children()
+                  );
+              } else {
+                _table_TableExcelHelper__WEBPACK_IMPORTED_MODULE_6__.a
+                  .createTableFooter(
+                    this.printElementType.columns,
+                    this.getData(isNotDesign),
+                    this.options,
+                    this.printElementType,
+                    isNotDesign,
+                    rowData,
+                    pageIndex
+                  )
+                  .insertBefore(tableTarget.find("tbody"));
               }
+              this.css(tableTarget, isNotDesign);
             }
+            break;
           }
+        }
+      }
 
-          var m = n.find(".hiprint-printElement-tableTarget tbody tr").length,
-            v = this.getGridColumnsFooterFormatter();
-          v &&
-            n
-              .find(this.gridColumnsFooterCss)
-              .html(v(this.options, this.getData(t), t, l));
-          s = n.outerHeight();
-          // 当每一页数据,都无法容纳表格行内容时:
-          let curRow = a.find("tr:lt(1)");
-          if (m == 0 && curRow.length && g == curRow.data("rowData")) {
-            d.find("tbody").append(curRow);
-            let height = d.find("tbody tr").outerHeight();
-            a.prepend(curRow);
-            return {
-              target: $(
-                `<div style="position:absolute;background: red;color: white;padding: 0px 4px;">${i18n.__(
-                  "没有足够空间,显示下方内容, 可分页高度"
-                )}: ` +
-                  p +
-                  `px < ${i18n.__("当前需要高度")}: ` +
-                  height +
-                  "px</div>"
-              ).append(curRow.css("background", "blue")),
-              length: m,
-              height:
-                _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_3__.a.px.toPt(s),
-              isEnd: !1,
-            };
-          }
-          // 方便调试看 值...
-          var zz =
-            0 == a.find("tr").length
-              ? 0 == m && r
-                ? {
-                    target: void 0,
-                    length: 0,
-                    height: 0,
-                    isEnd: !0,
-                  }
-                : {
-                    target: n.clone(),
-                    length: m,
-                    height:
-                      _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_3__.a.px.toPt(
-                        s
-                      ),
-                    isEnd: !0,
-                  }
-              : {
-                  target: n.clone(),
-                  length: m,
-                  height:
-                    _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_3__.a.px.toPt(
-                      s
-                    ),
-                  isEnd: !1,
-                };
-          return zz;
-        }),
-        (TablePrintElement.prototype.fixMergeSpan = function (tr, tbody) {
-          const nextRowMap = new Map();
-          tr.children().each((_, td) => {
-            var field = $(td).attr("field");
+      const rowCount = emptyRowsTarget.find(
+        ".hiprint-printElement-tableTarget tbody tr"
+      ).length;
+      const gridColumnsFooterFormatter = this.getGridColumnsFooterFormatter();
+      if (gridColumnsFooterFormatter) {
+        emptyRowsTarget
+          .find(this.gridColumnsFooterCss)
+          .html(
+            gridColumnsFooterFormatter(
+              this.options,
+              this.getData(isNotDesign),
+              isNotDesign,
+              rowsData
+            )
+          );
+      }
+      currentHeight = emptyRowsTarget.outerHeight();
+
+      const currentRow = tableBody.find("tr:lt(1)");
+      if (
+        rowCount === 0 &&
+        currentRow.length &&
+        rowData === currentRow.data("rowData")
+      ) {
+        tableTarget.find("tbody").append(currentRow);
+        const rowHeight = tableTarget.find("tbody tr").outerHeight();
+        tableBody.prepend(currentRow);
+        return {
+          target: $(
+            `<div style="position:absolute;background: red;color: white;padding: 0px 4px;">${i18n.__(
+              "没有足够空间,显示下方内容, 可分页高度"
+            )}: ` +
+              heightInPx +
+              `px < ${i18n.__("当前需要高度")}: ` +
+              rowHeight +
+              "px</div>"
+          ).append(currentRow.css("background", "blue")),
+          length: rowCount,
+          height:
+            _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_3__.a.px.toPt(
+              currentHeight
+            ),
+          isEnd: false,
+        };
+      }
+
+      if (tableBody.find("tr").length === 0) {
+        if (rowCount === 0 && previousResultTarget) {
+          return {
+            target: undefined,
+            length: 0,
+            height: 0,
+            isEnd: true,
+          };
+        } else {
+          return {
+            target: emptyRowsTarget.clone(),
+            length: rowCount,
+            height:
+              _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_3__.a.px.toPt(
+                currentHeight
+              ),
+            isEnd: true,
+          };
+        }
+      } else {
+        return {
+          target: emptyRowsTarget.clone(),
+          length: rowCount,
+          height:
+            _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_3__.a.px.toPt(
+              currentHeight
+            ),
+          isEnd: false,
+        };
+      }
+    }
+
+    fixMergeSpan(row, tableBody) {
+      const nextRowMap = new Map();
+      row.children().each((_, cell) => {
+        const field = $(cell).attr("field");
+        nextRowMap.set(field, {
+          rowSpan: 1,
+          rowEnd: false,
+        });
+        row.nextAll().each((_, nextRow) => {
+          if (
+            $(nextRow).has(`td[field=${field}][rowspan=0]`).length &&
+            !nextRowMap.get(field).rowEnd
+          ) {
             nextRowMap.set(field, {
-              rowSpan: 1,
+              rowSpan: ++nextRowMap.get(field).rowSpan,
               rowEnd: false,
             });
-            tr.nextAll().each((_, nextTr) => {
-              if (
-                $(nextTr).has(`td[field=${field}][rowspan=0]`).length &&
-                !nextRowMap.get(field).rowEnd
-              ) {
-                nextRowMap.set(field, {
-                  rowSpan: ++nextRowMap.get(field).rowSpan,
-                  rowEnd: false,
-                });
-              } else {
-                nextRowMap.set(field, {
-                  ...nextRowMap.get(field),
-                  rowEnd: true,
-                });
-              }
+          } else {
+            nextRowMap.set(field, {
+              ...nextRowMap.get(field),
+              rowEnd: true,
             });
-
-            if ($(td).attr("rowspan") < 1) {
-              $(td).attr("rowspan", nextRowMap.get(field).rowSpan);
-              $(td).css("display", "");
-              if (this.options.rowsColumnsMergeClean) {
-                $(td).text("");
-              }
-            }
-          });
-          return tr;
-        }),
-        (TablePrintElement.prototype.autoCompletion = function (t, e, tfh) {
-          var that = this;
-          for (
-            var n, i = this.getEmptyRowTarget(), o = e.outerHeight() + tfh;
-            t > o;
-
-          ) {
-            (n = i.clone()),
-              e.find("tbody").append(n),
-              (o = e.outerHeight() + tfh);
-            if (
-              that.options.maxRows &&
-              e.find("tbody").children().length > that.options.maxRows
-            ) {
-              break;
-            }
           }
+        });
 
-          n && n.remove();
-        }),
-        (TablePrintElement.prototype.getData = function (t) {
-          if (!t) {
-            // 设计时表格 测试数据
-            try {
-              let testData = this.options.testData || "[{}]";
-              return JSON.parse(testData);
-            } catch (e) {
-              console.log("table testData parse error", e);
-              return [{}];
-            }
+        if ($(cell).attr("rowspan") < 1) {
+          $(cell).attr("rowspan", nextRowMap.get(field).rowSpan);
+          $(cell).css("display", "");
+          if (this.options.rowsColumnsMergeClean) {
+            $(cell).text("");
           }
-          var f = this.getField();
-          var e = f
-            ? f.split(".").reduce((a, c) => (a ? a[c] : t ? t[c] : ""), !1) ||
-              ""
-            : "";
-          return e ? JSON.parse(JSON.stringify(e)) : [];
-        }),
-        (TablePrintElement.prototype.onResize = function (t, e, n, i, o) {
-          _super.prototype.updateSizeAndPositionOptions.call(this, o, i, n, e),
-            _table_TableExcelHelper__WEBPACK_IMPORTED_MODULE_6__.a.resizeTableCellWidth(
-              this.designTarget,
-              this.getColumns(),
-              this.options.getWidth()
-            );
-        }),
-        (TablePrintElement.prototype.getReizeableShowPoints = function () {
-          return ["s", "e"];
-        }),
-        (TablePrintElement.prototype.design = function (t, e) {
-          var n = this;
-          this.designTarget.hidraggable({
-            handle: this.designTarget.find(
-              ".hiprint-printElement-table-handle"
-            ),
-            axis: n.options.axis ? n.options.axis : void 0,
-            designTarget: n,
-            onDrag: function onDrag(t, i, o) {
-              n.updateSizeAndPositionOptions(i, o), n.createLineOfPosition(e);
-              _HiPrintlib__WEBPACK_IMPORTED_MODULE_9__.a.instance.changed = !0;
-            },
-            moveUnit: "pt",
-            minMove:
-              _HiPrintConfig__WEBPACK_IMPORTED_MODULE_1__.a.instance
-                .movingDistance,
-            onBeforeDrag: function onBeforeDrag(t) {
-              (_HiPrintlib__WEBPACK_IMPORTED_MODULE_9__.a.instance.draging =
-                !0),
-                n.createLineOfPosition(e);
-            },
-            getScale: function getScale() {
-              return n.designPaper.scale || 1;
-            },
-            onStopDrag: function onStopDrag(t) {
-              if (_HiPrintlib__WEBPACK_IMPORTED_MODULE_9__.a.instance.changed)
-                _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_3__.a.event.trigger(
-                  "hiprintTemplateDataChanged_" + n.templateId,
-                  "移动"
-                );
-              (_HiPrintlib__WEBPACK_IMPORTED_MODULE_9__.a.instance.draging =
-                !1),
-                (_HiPrintlib__WEBPACK_IMPORTED_MODULE_9__.a.instance.changed =
-                  !1),
-                n.removeLineOfPosition();
-            },
-          }),
-            this.printElementType.editable && this.setHitable(),
-            this.setColumnsOptions(),
-            this.designTarget.hireizeable({
-              showPoints: n.getReizeableShowPoints(),
-              // 是否显示宽高box
-              showSizeBox:
-                _HiPrintConfig__WEBPACK_IMPORTED_MODULE_1__.a.instance
-                  .showSizeBox,
-              noContainer: !0,
-              onBeforeResize: function onBeforeResize() {
-                _HiPrintlib__WEBPACK_IMPORTED_MODULE_9__.a.instance.draging =
-                  !0;
-              },
-              getScale: function getScale() {
-                return n.designPaper.scale || 1;
-              },
-              onResize: function onResize(t, i, o, r, a) {
-                n.onResize(t, i, o, r, a),
-                  n.hitable && n.hitable.updateColumnGrips(),
-                  n.createLineOfPosition(e);
-              },
-              onStopResize: function onStopResize(r) {
-                _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_3__.a.event.trigger(
-                  "hiprintTemplateDataChanged_" + n.templateId,
-                  r ? "旋转" : "大小"
-                );
-                (_HiPrintlib__WEBPACK_IMPORTED_MODULE_9__.a.instance.draging =
-                  !1),
-                  n.removeLineOfPosition();
-              },
-            }),
-            this.bindKeyboardMoveEvent(this.designTarget, e);
-        }),
-        (TablePrintElement.prototype.setHitable = function () {
-          var t = this;
-          (this.hitable = new _hitable_HiTale__WEBPACK_IMPORTED_MODULE_7__.a({
-            templateId: t.templateId,
-            table: this.designTarget.find(
-              ".hiprint-printElement-tableTarget:eq(0)"
-            ),
-            rows: this.getColumns(),
-            resizeRow: !1,
-            resizeColumn: !0,
-            fields: this.options.fields,
-            trs: this.designTarget
-              .find(".hiprint-printElement-tableTarget:eq(0)")
-              .find("tbody tr"),
-            handle: this.designTarget
-              .find(".hiprint-printElement-tableTarget:eq(0)")
-              .find("thead"),
-            isEnableEdit: this.printElementType.editable
-              ? this.printElementType.editable
-              : !0,
-            columnDisplayEditable:
-              this.printElementType.columnDisplayEditable != undefined
-                ? this.printElementType.columnDisplayEditable
-                : !0,
-            columnDisplayIndexEditable:
-              this.printElementType.columnDisplayIndexEditable != undefined
-                ? this.printElementType.columnDisplayIndexEditable
-                : !0,
-            columnResizable:
-              this.printElementType.columnResizable != undefined
-                ? this.printElementType.columnResizable
-                : !0,
-            columnAlignEditable:
-              this.printElementType.columnAlignEditable != undefined
-                ? this.printElementType.columnAlignEditable
-                : !0,
-            isEnableEditText:
-              this.printElementType.columnTitleEditable != undefined
-                ? this.printElementType.columnTitleEditable
-                : !0,
-            isEnableEditField:
-              this.printElementType.isEnableEditField != undefined
-                ? this.printElementType.isEnableEditField
-                : !0,
-            isEnableContextMenu:
-              this.printElementType.isEnableContextMenu != undefined
-                ? this.printElementType.isEnableContextMenu
-                : !0,
-            isEnableInsertRow:
-              this.printElementType.isEnableInsertRow != undefined
-                ? this.printElementType.isEnableInsertRow
-                : !0,
-            isEnableDeleteRow:
-              this.printElementType.isEnableDeleteRow != undefined
-                ? this.printElementType.isEnableDeleteRow
-                : !0,
-            isEnableInsertColumn:
-              this.printElementType.isEnableInsertColumn != undefined
-                ? this.printElementType.isEnableInsertColumn
-                : !0,
-            isEnableDeleteColumn:
-              this.printElementType.isEnableDeleteColumn != undefined
-                ? this.printElementType.isEnableDeleteColumn
-                : !0,
-            isEnableMergeCell:
-              this.printElementType.isEnableMergeCell != undefined
-                ? this.printElementType.isEnableMergeCell
-                : !0,
-          })),
-            _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_3__.a.event.on(
-              "updateTable" + this.hitable.id,
-              function () {
-                t.updateDesignViewFromOptions();
-                _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_3__.a.event.trigger(
-                  "hiprintTemplateDataChanged_" + t.templateId,
-                  "调整表头"
-                );
-              }
-            );
-        }),
-        (TablePrintElement.prototype.setColumnsOptions = function () {
-          var t = this;
-          this.designTarget
-            .find(".hiprint-printElement-tableTarget:eq(0)")
-            .find("thead td")
-            .bind("click.hiprint", function (e) {
-              var n = $(e.target).attr("id") || $(e.target).attr("column-id"),
-                i = t.getColumnByColumnId(n);
+        }
+      });
+      return row;
+    }
 
-              if (i) {
-                var o = t.getPrintElementOptionItemsByName("tableColumn");
+    autoCompletion(heightInPx, tableTarget, tableFooterHeight) {
+      const that = this;
+      let emptyRow;
+      let currentHeight = tableTarget.outerHeight() + tableFooterHeight;
+      while (heightInPx > currentHeight) {
+        emptyRow = this.getEmptyRowTarget().clone();
+        tableTarget.find("tbody").append(emptyRow);
+        currentHeight = tableTarget.outerHeight() + tableFooterHeight;
+        if (
+          that.options.maxRows &&
+          tableTarget.find("tbody").children().length > that.options.maxRows
+        ) {
+          break;
+        }
+      }
+      if (emptyRow) emptyRow.remove();
+    }
 
-                _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_3__.a.event.trigger(
-                  t.getPrintElementSelectEventKey(),
-                  {
-                    printElement: t,
-                    customOptionsInput: [
-                      {
-                        title:
-                          (i.title || `${i.id}(id)`) + `-${i18n.__("列属性")}`,
-                        optionItems: o,
-                        options: i,
-                        callback: function callback(t) {
-                          o.forEach(function (t) {
-                            var e = t.getValue();
-                            if (
-                              "title" == t.name &&
-                              e &&
-                              !e.trim().endsWith("#") &&
-                              !e.trim().startsWith("#")
-                            ) {
-                              var n = e ? e.split("#") : "";
-                              (i.title = n[0]),
-                                n.length > 1 && (i.columnId = i.field = n[1]);
-                              i.columnId &&
-                                i.target.attr("column-id", i.columnId);
-                              t.target.find("textarea").val(n[0]);
-                              return;
-                            }
-                            i[t.name] = e;
-                          });
-                        },
-                      },
-                    ],
-                  }
-                );
-              } else
-                _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_3__.a.event.trigger(
-                  t.getPrintElementSelectEventKey(),
-                  {
-                    printElement: t,
-                  }
-                );
-            });
-        }),
-        (TablePrintElement.prototype.filterOptionItems = function (t) {
-          var e = _super.prototype.filterOptionItems.call(this, t);
+    getData(isNotDesign) {
+      if (!isNotDesign) {
+        try {
+          const testData = this.options.testData || "[{}]";
+          return JSON.parse(testData);
+        } catch (error) {
+          console.log("table testData parse error", error);
+          return [{}];
+        }
+      }
+      const field = this.getField();
+      const data = field
+        ? field
+            .split(".")
+            .reduce(
+              (acc, curr) =>
+                acc ? acc[curr] : isNotDesign ? isNotDesign[curr] : "",
+              false
+            ) || ""
+        : "";
+      return data ? JSON.parse(JSON.stringify(data)) : [];
+    }
 
-          return this.printElementType.editable &&
-            1 == this.options.columns.length
-            ? e
-            : t.filter(function (t) {
-                return "columns" != t.name;
-              });
-        }),
-        (TablePrintElement.prototype.getFooterFormatter = function () {
-          var footerFormatter = void 0;
-          if (
-            (this.printElementType.footerFormatter &&
-              (footerFormatter = this.printElementType.footerFormatter),
-            this.options.footerFormatter)
-          )
-            try {
-              var s = "footerFormatter=" + this.options.footerFormatter;
-              eval(s);
-            } catch (t) {
-              console.log(t);
-            }
-          return footerFormatter;
-        }),
-        (TablePrintElement.prototype.getGridColumnsFooterFormatter =
-          function () {
-            var gridColumnsFooterFormatter = void 0;
-            if (
-              (this.printElementType.gridColumnsFooterFormatter &&
-                (gridColumnsFooterFormatter =
-                  this.printElementType.gridColumnsFooterFormatter),
-              this.options.gridColumnsFooterFormatter)
-            )
-              try {
-                var s =
-                  "gridColumnsFooterFormatter=" +
-                  this.options.gridColumnsFooterFormatter;
-                eval(s);
-              } catch (t) {
-                console.log(t);
-              }
-            return gridColumnsFooterFormatter;
-          }),
-        TablePrintElement
+    onResize(event, width, height, position, options) {
+      super.updateSizeAndPositionOptions(options, position, height, width);
+      _table_TableExcelHelper__WEBPACK_IMPORTED_MODULE_6__.a.resizeTableCellWidth(
+        this.designTarget,
+        this.getColumns(),
+        this.options.getWidth()
       );
-    })(_BasePrintElement__WEBPACK_IMPORTED_MODULE_0__.a);
+    }
+
+    getReizeableShowPoints() {
+      return ["s", "e"];
+    }
+
+    design(paper, options) {
+      const that = this;
+      this.designTarget.hidraggable({
+        handle: this.designTarget.find(".hiprint-printElement-table-handle"),
+        axis: this.options.axis ? this.options.axis : undefined,
+        designTarget: this,
+        onDrag: function (event, position, delta) {
+          that.updateSizeAndPositionOptions(position, delta);
+          that.createLineOfPosition(options);
+          _HiPrintlib__WEBPACK_IMPORTED_MODULE_9__.a.instance.changed = true;
+        },
+        moveUnit: "pt",
+        minMove:
+          _HiPrintConfig__WEBPACK_IMPORTED_MODULE_1__.a.instance.movingDistance,
+        onBeforeDrag: function (event) {
+          _HiPrintlib__WEBPACK_IMPORTED_MODULE_9__.a.instance.draging = true;
+          that.createLineOfPosition(options);
+        },
+        getScale: function () {
+          return that.designPaper.scale || 1;
+        },
+        onStopDrag: function (event) {
+          if (_HiPrintlib__WEBPACK_IMPORTED_MODULE_9__.a.instance.changed) {
+            _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_3__.a.event.trigger(
+              "hiprintTemplateDataChanged_" + that.templateId,
+              "移动"
+            );
+          }
+          _HiPrintlib__WEBPACK_IMPORTED_MODULE_9__.a.instance.draging = false;
+          _HiPrintlib__WEBPACK_IMPORTED_MODULE_9__.a.instance.changed = false;
+          that.removeLineOfPosition();
+        },
+      });
+
+      if (this.printElementType.editable) this.setHitable();
+      this.setColumnsOptions();
+
+      this.designTarget.hireizeable({
+        showPoints: this.getReizeableShowPoints(),
+        showSizeBox:
+          _HiPrintConfig__WEBPACK_IMPORTED_MODULE_1__.a.instance.showSizeBox,
+        noContainer: true,
+        onBeforeResize: function () {
+          _HiPrintlib__WEBPACK_IMPORTED_MODULE_9__.a.instance.draging = true;
+        },
+        getScale: function () {
+          return that.designPaper.scale || 1;
+        },
+        onResize: function (event, width, height, position, options) {
+          that.onResize(event, width, height, position, options);
+          if (that.hitable) that.hitable.updateColumnGrips();
+          that.createLineOfPosition(options);
+        },
+        onStopResize: function (isRotate) {
+          _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_3__.a.event.trigger(
+            "hiprintTemplateDataChanged_" + that.templateId,
+            isRotate ? "旋转" : "大小"
+          );
+          _HiPrintlib__WEBPACK_IMPORTED_MODULE_9__.a.instance.draging = false;
+          that.removeLineOfPosition();
+        },
+      });
+
+      this.bindKeyboardMoveEvent(this.designTarget, options);
+    }
+
+    setHitable() {
+      const that = this;
+      this.hitable = new _hitable_HiTale__WEBPACK_IMPORTED_MODULE_7__.a({
+        templateId: this.templateId,
+        table: this.designTarget.find(
+          ".hiprint-printElement-tableTarget:eq(0)"
+        ),
+        rows: this.getColumns(),
+        resizeRow: false,
+        resizeColumn: true,
+        fields: this.options.fields,
+        trs: this.designTarget
+          .find(".hiprint-printElement-tableTarget:eq(0)")
+          .find("tbody tr"),
+        handle: this.designTarget
+          .find(".hiprint-printElement-tableTarget:eq(0)")
+          .find("thead"),
+        isEnableEdit: this.printElementType.editable
+          ? this.printElementType.editable
+          : true,
+        columnDisplayEditable:
+          this.printElementType.columnDisplayEditable !== undefined
+            ? this.printElementType.columnDisplayEditable
+            : true,
+        columnDisplayIndexEditable:
+          this.printElementType.columnDisplayIndexEditable !== undefined
+            ? this.printElementType.columnDisplayIndexEditable
+            : true,
+        columnResizable:
+          this.printElementType.columnResizable !== undefined
+            ? this.printElementType.columnResizable
+            : true,
+        columnAlignEditable:
+          this.printElementType.columnAlignEditable !== undefined
+            ? this.printElementType.columnAlignEditable
+            : true,
+        isEnableEditText:
+          this.printElementType.columnTitleEditable !== undefined
+            ? this.printElementType.columnTitleEditable
+            : true,
+        isEnableEditField:
+          this.printElementType.isEnableEditField !== undefined
+            ? this.printElementType.isEnableEditField
+            : true,
+        isEnableContextMenu:
+          this.printElementType.isEnableContextMenu !== undefined
+            ? this.printElementType.isEnableContextMenu
+            : true,
+        isEnableInsertRow:
+          this.printElementType.isEnableInsertRow !== undefined
+            ? this.printElementType.isEnableInsertRow
+            : true,
+        isEnableDeleteRow:
+          this.printElementType.isEnableDeleteRow !== undefined
+            ? this.printElementType.isEnableDeleteRow
+            : true,
+        isEnableInsertColumn:
+          this.printElementType.isEnableInsertColumn !== undefined
+            ? this.printElementType.isEnableInsertColumn
+            : true,
+        isEnableDeleteColumn:
+          this.printElementType.isEnableDeleteColumn !== undefined
+            ? this.printElementType.isEnableDeleteColumn
+            : true,
+        isEnableMergeCell:
+          this.printElementType.isEnableMergeCell !== undefined
+            ? this.printElementType.isEnableMergeCell
+            : true,
+      });
+
+      _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_3__.a.event.on(
+        "updateTable" + this.hitable.id,
+        function () {
+          that.updateDesignViewFromOptions();
+          _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_3__.a.event.trigger(
+            "hiprintTemplateDataChanged_" + that.templateId,
+            "调整表头"
+          );
+        }
+      );
+    }
+
+    setColumnsOptions() {
+      const that = this;
+      this.designTarget
+        .find(".hiprint-printElement-tableTarget:eq(0)")
+        .find("thead td")
+        .bind("click.hiprint", function (event) {
+          const columnId =
+            $(event.target).attr("id") || $(event.target).attr("column-id");
+          const column = that.getColumnByColumnId(columnId);
+
+          if (column) {
+            const optionItems =
+              that.getPrintElementOptionItemsByName("tableColumn");
+
+            _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_3__.a.event.trigger(
+              that.getPrintElementSelectEventKey(),
+              {
+                printElement: that,
+                customOptionsInput: [
+                  {
+                    title:
+                      (column.title || `${column.id}(id)`) +
+                      `-${i18n.__("列属性")}`,
+                    optionItems: optionItems,
+                    options: column,
+                    callback: function (options) {
+                      optionItems.forEach(function (option) {
+                        const value = option.getValue();
+                        if (
+                          option.name === "title" &&
+                          value &&
+                          !value.trim().endsWith("#") &&
+                          !value.trim().startsWith("#")
+                        ) {
+                          const parts = value ? value.split("#") : "";
+                          column.title = parts[0];
+                          if (parts.length > 1) {
+                            column.columnId = column.field = parts[1];
+                          }
+                          if (column.columnId) {
+                            column.target.attr("column-id", column.columnId);
+                          }
+                          option.target.find("textarea").val(parts[0]);
+                          return;
+                        }
+                        column[option.name] = value;
+                      });
+                    },
+                  },
+                ],
+              }
+            );
+          } else {
+            _assets_plugins_hinnn__WEBPACK_IMPORTED_MODULE_3__.a.event.trigger(
+              that.getPrintElementSelectEventKey(),
+              {
+                printElement: that,
+              }
+            );
+          }
+        });
+    }
+
+    filterOptionItems(options) {
+      const filteredOptions = super.filterOptionItems(options);
+      return this.printElementType.editable && this.options.columns.length === 1
+        ? filteredOptions
+        : options.filter((option) => option.name !== "columns");
+    }
+
+    getFooterFormatter() {
+      let footerFormatter;
+      if (this.printElementType.footerFormatter) {
+        footerFormatter = this.printElementType.footerFormatter;
+      }
+      if (this.options.footerFormatter) {
+        try {
+          const script = "footerFormatter=" + this.options.footerFormatter;
+          eval(script);
+        } catch (error) {
+          console.log(error);
+        }
+      }
+      return footerFormatter;
+    }
+
+    getGridColumnsFooterFormatter() {
+      let gridColumnsFooterFormatter;
+      if (this.printElementType.gridColumnsFooterFormatter) {
+        gridColumnsFooterFormatter =
+          this.printElementType.gridColumnsFooterFormatter;
+      }
+      if (this.options.gridColumnsFooterFormatter) {
+        try {
+          const script =
+            "gridColumnsFooterFormatter=" +
+            this.options.gridColumnsFooterFormatter;
+          eval(script);
+        } catch (error) {
+          console.log(error);
+        }
+      }
+      return gridColumnsFooterFormatter;
+    }
+  }
 }
