@@ -1,108 +1,118 @@
-import LineHeight from "./targetClass/lineHeight";
-import FontFamily from "./targetClass/fontFamily";
-import FontSize from "./targetClass/fontSize";
-import FontWeight from "./targetClass/fontWeight";
-import LetterSpacing from "./targetClass/letterSpacing";
-import TextAlign from "./targetClass/textAlign";
-import HideTitle from "./targetClass/hideTitle";
-import TableBorder from "./targetClass/tableBorder";
-import TableHeaderBorder from "./targetClass/tableHeaderBorder";
-import TableHeaderCellBorder from "./targetClass/tableHeaderCellBorder";
-import TableFooterBorder from "./targetClass/tableFooterBorder";
-import TableFooterCellBorder from "./targetClass/tableFooterCellBorder";
-import TableHeaderRowHeight from "./targetClass/tableHeaderRowHeight";
-import TableHeaderFontSize from "./targetClass/tableHeaderFontSize";
-import TableHeaderFontWeight from "./targetClass/tableHeaderFontWeight";
-import TableBodyCellBorder from "./targetClass/tableBodyCellBorder";
-import TableBodyRowHeight from "./targetClass/tableBodyRowHeight";
-import TableHeaderBackground from "./targetClass/tableHeaderBackground";
-import BorderWidth from "./targetClass/borderWidth";
-import BarcodeMode from "./targetClass/barcodeMode";
-import BarTextMode from "./targetClass/barTextMode";
-import BarcodeWidth from "./targetClass/barWidth";
-import BarAutoWidth from "./targetClass/barAutoWidth";
-import BarcodeType from "./targetClass/barcodeType";
-import QRCodeType from "./targetClass/qrcodeType";
-import QRCodeLevel from "./targetClass/qrCodeLevel";
-import ColorTarget from "./targetClass/color";
-import TextDecoration from "./targetClass/textDecoration";
-import Field from "./targetClass/field";
-import TitleTarget from "./targetClass/title";
-import TestData from "./targetClass/testData";
-import Coordinate from "./targetClass/coordinate";
-import WidthHeight from "./targetClass/widthHeight";
-import SrcTarget from "./targetClass/srcTarget";
-import ImageFit from "./targetClass/imageFit";
 import {
-  BorderColor,
-  WatermarkOptions,
-  PaperNumberFormat,
-  PaperNumberDisabled,
-  PaperNumberContinue,
-  LongTextIndent,
-  ShowInPage,
-  PageBreak,
-  PanelPaperRule,
-  PanelPageRule,
-  LeftSpaceRemoved,
-  FirstPaperFooter,
-  LastPaperFooter,
-  EvenPaperFooter,
-  OddPaperFooter,
-  FixedPosition,
-  DragDirection,
-  LeftOffset,
-  MinimumHeight,
-  HideRule,
+  TableBorder,
+  TableHeaderBorder,
+  TableHeaderCellBorder,
+  TableFooterBorder,
+  TableFooterCellBorder,
+  TableBodyCellBorder,
+  TableHeaderRowHeight,
+  TableHeaderFontSize,
+  TableHeaderFontWeight,
+  TableBodyRowHeight,
+  TableHeaderBackground,
   TableBodyRowBorder,
-  Transform,
-  ZIndex,
-  BorderRadius,
-  OptionsGroup,
-  BorderTop,
-  BorderLeft,
-  BorderRight,
-  BorderBottom,
-  ContentPaddingLeft,
-  ContentPaddingTop,
-  ContentPaddingRight,
-  ContentPaddingBottom,
-  BorderStyle,
-  BackgroundColor,
-  BarColor,
-  Orientation,
-  TextContentVerticalAlign,
-  TextContentWrap,
-  Columns,
-  TextType,
-  TableTextType,
-  TableBarcodeMode,
-  TableQRCodeLevel,
-  TableColumnHeight,
   TableSummaryTitle,
   TableSummaryText,
   TableSummaryColspan,
   TableSummaryAlign,
   TableSummaryNumFormat,
-} from "./targetClass/DGLJH";
+  TableHeaderRepeat,
+  TableFooterRepeat,
+  TableColumnHeight,
+  RowsColumnsMerge,
+  RowsColumnsMergeClean,
+  TableSummaryFormatter,
+  TableSummary,
+  TableTextType,
+  TableBarcodeMode,
+  TableQRCodeLevel,
+} from "./targetClass/table.js";
 
 import {
-  ShowCodeTitle,
-  TableSummaryFormatter,
+  BarcodeMode,
+  BarTextMode,
+  BarcodeWidth,
+  BarAutoWidth,
+  BarcodeType,
+  QRCodeType,
+  QRCodeLevel,
+  BarColor,
+} from "./targetClass/barcode.js";
+
+import {
+  ColorTarget,
+  BorderColor,
+  BackgroundColor,
+} from "./targetClass/color.js";
+
+import {
+  LineHeight,
+  FontFamily,
+  FontSize,
+  FontWeight,
+  LetterSpacing,
+  TextAlign,
+  TextDecoration,
+  TextContentVerticalAlign,
+  TextContentWrap,
+  Columns,
   UpperCase,
-  TableSummary,
+  Align,
+  VerticalAlign,
+  HorizontalAlignment,
+  LongTextIndent,
+  ShowInPage,
+  TextType,
+} from "./targetClass/textStyles.js";
+
+import {
+  Coordinate,
+  WidthHeight,
+  SrcTarget,
+  ImageFit,
+  FixedPosition,
+  DragDirection,
+  LeftOffset,
   TopOffset,
+  MinimumHeight,
+  LeftSpaceRemoved,
+  ZIndex,
+  BorderRadius,
+  PaddingLeft,
+  PaddingRight,
+  ContentPaddingLeft,
+  ContentPaddingTop,
+  ContentPaddingRight,
+  ContentPaddingBottom,
+} from "./targetClass/layout.js";
+
+import {
+  BorderWidth,
+  BorderStyle,
+  BorderTop,
+  BorderLeft,
+  BorderRight,
+  BorderBottom,
+} from "./targetClass/border.js";
+
+import {
+  Field,
+  TitleTarget,
+  TestData,
+  PaperNumberFormat,
+  PaperNumberDisabled,
+  PaperNumberContinue,
+  ShowCodeTitle,
+  PanelPaperRule,
+  PanelPageRule,
+  PageBreak,
+  Transform,
+  OptionsGroup,
+  HideTitle,
+  HideRule,
   PanelLayoutOptions,
   GridColumns,
   GridColumnsGutter,
-  TableHeaderRepeat,
-  PaddingLeft,
-  PaddingRight,
-  DataType,
-  Formatter,
-  Styler,
-  RowsColumnsMerge,
-  RowsColumnsMergeClean,
   FooterFormatter,
   GroupSequenceContinue,
   GroupFieldsFormatter,
@@ -110,17 +120,26 @@ import {
   GroupFooterFormatter,
   GridColumnsFooterFormatter,
   RowStyler,
-  Align,
-  VerticalAlign,
-  HorizontalAlignment,
+  Styler,
   Styler2,
   StylerHeader,
+  Formatter,
   Formatter2,
   RenderFormatter,
   AutoCompletion,
   MaxRows,
-  TableFooterRepeat,
-} from "./targetClass/DJLJH2";
+} from "./targetClass/dataLogic.js";
+
+import { WatermarkOptions } from "./targetClass/backgroundWatermark.js";
+
+import {
+  FirstPaperFooter,
+  LastPaperFooter,
+  EvenPaperFooter,
+  OddPaperFooter,
+} from "./targetClass/paperSettings.js";
+
+import { DataType, Orientation } from "./targetClass/common.js";
 
 export default function CreateTarget(module, exports, require) {
   "use strict";
