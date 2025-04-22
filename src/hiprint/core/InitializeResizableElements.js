@@ -111,7 +111,8 @@ export default function (module, exports, require) {
               bubbles: true,
               keyCode: 46,
             });
-            module.dispatchEvent(keyboardEvent);
+            debugger;
+            target.dispatchEvent(keyboardEvent);
           });
         }
         self.addHandlerCss(getResizeHandles());

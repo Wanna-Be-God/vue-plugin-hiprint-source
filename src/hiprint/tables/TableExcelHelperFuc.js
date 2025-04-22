@@ -442,9 +442,9 @@ function TableExcelHelperFunction(module, exports, require) {
             column.field && cellElement.attr("field", column.field);
             column.align && cellElement.css("text-align", column.align);
             column.vAlign && cellElement.css("vertical-align", column.vAlign);
+            let width = 0;
             if (options.rowsColumnsMerge) {
               if (rowsColumnsArr[1] > 1) {
-                let width = 0;
                 columns.forEach((item, index) => {
                   if (
                     index >= columnIndex &&
